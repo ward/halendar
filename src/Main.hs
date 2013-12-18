@@ -26,7 +26,8 @@ appInit = makeSnaplet "halendar" "The Haskell Calendar" Nothing $ do
         ("/signin", writeText "Signin page"),
         ("/navigate", writeText "Navigates the calendar"),
         ("/publish", writeText "Publish an event"),
-        ("/delete", writeText "Delete an event")
+        ("/delete", writeText "Delete an event"),
+        ("", serveDirectory "static")
         ]
     wrapSite (<|> heistServe)
     return $ App hs
