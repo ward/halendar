@@ -6,9 +6,10 @@
         <meta charset="utf-8" />
     </head>
     <body>
-        <header><h1><pagetitle /></h1></header>
+        <header><h1>Halendar</h1></header>
         <apply template="navigation" />
         <div id="content">
+            <h2><pagetitle /></h2>
             <apply-content />
         </div>
         <footer>By Ward Muylaert.</footer>
