@@ -22,7 +22,6 @@ appInit :: SnapletInit App App
 appInit = makeSnaplet "halendar" "The Haskell Calendar" Nothing $ do
     hs <- nestSnaplet "heist" heist $ heistInit "templates"
     addRoutes [
-        ("/signup", writeText "Signup page"),
         ("/signin", writeText "Signin page"),
         ("/navigate", writeText "Navigates the calendar"),
         ("/publish", writeText "Publish an event"),
