@@ -8,5 +8,6 @@
         <ifLoggedIn>
             <li>Links to calendar and what not</li>
         </ifLoggedIn>
+        <li><a href="/about">About</a></li>
     </ul>
 </nav>
