@@ -6,12 +6,15 @@ body {
 nav {
     display: inline-block;
     width: 9em;
+    vertical-align: top;
 }
 #content {
     display: inline-block;
     width: 30em;
+    vertical-align: top;
 }
 footer {
     font-size: 0.8em;
     text-align: center;
+    margin-top: 2em;
 }
