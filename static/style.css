@@ -8,6 +8,9 @@ nav {
     width: 9em;
     vertical-align: top;
 }
+nav ul {
+    list-style-type: none;
+}
 #content {
     display: inline-block;
     width: 30em;
