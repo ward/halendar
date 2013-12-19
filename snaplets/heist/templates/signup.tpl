@@ -1,6 +1,6 @@
 <apply template="base">
     <bind tag="pagetitle">Sign up</bind>
-    <form>
+    <form method="POST">
         <fieldset>
             <label for="username">Username</label><br />
             <input type="text" name="username" /><br />
