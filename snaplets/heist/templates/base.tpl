@@ -8,7 +8,9 @@
     <body>
         <header><h1><pagetitle /></h1></header>
         <apply template="navigation" />
-        <apply-content />
+        <div id="content">
+            <apply-content />
+        </div>
         <footer>By Ward Muylaert.</footer>
     </body>
 </html>

@@ -1,7 +1,17 @@
 body {
     font-family: "Droid Sans", sans-serif;
-    /*background-color: gray;*/
+    width: 40em;
+    margin: 0px auto;
+}
+nav {
+    display: inline-block;
+    width: 9em;
+}
+#content {
+    display: inline-block;
+    width: 30em;
 }
 footer {
     font-size: 0.8em;
+    text-align: center;
 }
