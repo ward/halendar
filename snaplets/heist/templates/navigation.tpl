@@ -6,7 +6,8 @@
             <li><a href="/signin">Sign in</a></li>
         </ifLoggedOut>
         <ifLoggedIn>
-            <li>Links to calendar and what not</li>
+            <li><a href="/event/new">New event</a></li>
+            <li><a href="/calendar">Calendar</a></li>
         </ifLoggedIn>
         <li><a href="/about">About</a></li>
     </ul>

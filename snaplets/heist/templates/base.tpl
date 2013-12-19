@@ -7,7 +7,12 @@
         <link rel="icon" type="image/png" href="/favicon.png" />
     </head>
     <body>
-        <header><h1>Halendar</h1></header>
+        <header>
+            <h1>Halendar</h1>
+            <ifLoggedIn>
+                <h4>Hello, <loggedInUser />! (<a href="/signout">Sign out</a>)</h4>
+            </ifLoggedIn>
+        </header>
         <apply template="navigation" />
         <div id="content">
             <h2><pagetitle /></h2>

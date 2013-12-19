@@ -3,6 +3,10 @@ body {
     width: 40em;
     margin: 0px auto;
 }
+/* Used for the "Hello <USER>!" */
+header h4 {
+    text-align: right;
+}
 nav {
     display: inline-block;
     width: 9em;
@@ -10,6 +14,8 @@ nav {
 }
 nav ul {
     list-style-type: none;
+    padding: 0px;
+    margin: 0px;
 }
 #content {
     display: inline-block;
