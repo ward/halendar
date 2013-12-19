@@ -28,7 +28,7 @@ instance HasHeist App where heistLens = subSnaplet heist
 routes :: [(ByteString, Handler App App ())]
 routes = [
     ("/signup", with auth handleNewUser),
-    --("/signin", writeText "Signin page"),
+    ("/signin", with auth handleLogin),
     --("/navigate", writeText "Navigates the calendar"),
     --("/publish", writeText "Publish an event"),
     --("/delete", writeText "Delete an event"),
@@ -41,6 +41,7 @@ appInit = makeSnaplet "halendar" "The Haskell Calendar" Nothing $ do
     s <- nestSnaplet "sess" sess $ initCookieSessionManager "site_key.txt" "sess" (Just 3600)
     a <- nestSnaplet "auth" auth $ initJsonFileAuthManager defAuthSettings sess "users.json"
     addRoutes routes
+    -- Add <ifLoggedIn> and <ifLoggedOut> tags in the heist templates
     addAuthSplices h auth
     wrapSite (<|> heistServe)
     return $ App h s a
@@ -51,6 +52,12 @@ main = serveSnaplet defaultConfig appInit
 -- Triggers on the /signup page
 handleNewUser :: Handler App (AuthManager App) ()
 handleNewUser = method GET handleForm <|> method POST handleFormSubmit
-  where
-    handleForm = render "signup"
-    handleFormSubmit = registerUser "username" "password" >> redirect "/"
+    where
+        handleForm = render "signup"
+        handleFormSubmit = registerUser "username" "password" >> redirect "/"
+
+handleLogin :: Handler App (AuthManager App) ()
+handleLogin = method GET handleForm <|> method POST handleFormSubmit
+    where
+        handleForm = render "signin"
+        handleFormSubmit = loginUser "username" "password" Nothing (\_ -> return ()) (redirect "/")
