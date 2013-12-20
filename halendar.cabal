@@ -1,10 +1,10 @@
 Name:                halendar
 Version:             0.1
-Synopsis:            Project Synopsis Here
-Description:         Project Description Here
-License:             AllRightsReserved
-Author:              Author
-Maintainer:          maintainer@example.com
+Synopsis:            The Haskell Calendar
+Description:         Calendar web application using the Snap Frameowkr
+License:             GPL3
+Author:              Ward Muylaert
+Maintainer:          ward.muylaert@gmail.com
 Stability:           Experimental
 Category:            Web
 Build-type:          Simple
