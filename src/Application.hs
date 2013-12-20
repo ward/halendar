@@ -1,4 +1,13 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Application where
+
+import Control.Lens
+import Snap
+import Snap.Snaplet.Heist
+import Snap.Snaplet.Auth
+import Snap.Snaplet.Session
+import Snap.Snaplet.SqliteSimple
 
 data App = App
     { _heist :: Snaplet (Heist App)

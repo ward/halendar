@@ -1,3 +1,6 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Db (
     User(..)
   , Event(..)
@@ -5,11 +8,14 @@ module Db (
   , saveEvent
   , getEventsForUser) where
 
+import           Control.Monad
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
 import           Snap.Snaplet
 import           Snap.Snaplet.SqliteSimple
+
+import           Application
 
 -- TODO: How does this relate to the Auth user?
 -- Seems this is used as a simplified User, the example fills this up with only

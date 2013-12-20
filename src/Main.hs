@@ -14,16 +14,10 @@ import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.JsonFile
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
+----
+import           Application
+import           Db
 
-data App = App
-    { _heist :: Snaplet (Heist App)
-    , _sess :: Snaplet SessionManager
-    , _auth :: Snaplet (AuthManager App)
-    }
-
-makeLenses ''App
-
-instance HasHeist App where heistLens = subSnaplet heist
 
 routes :: [(ByteString, Handler App App ())]
 routes = [
