@@ -65,16 +65,6 @@ createTables conn = do
                       -- Take note: if auth spec changes, this needs changing to
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
-    -- Given its a relation of user 1:many events, we can just put foreign key
-    -- in the events database, no?
-    -- Same idea for the `event_user` table
-    --isEventUserTableCreated <- tableExists conn "event_user"
-    --unless isEventUserTableCreated $
-    --    S.execute_ conn
-    --        (S.Query $
-    --         T.concat [ "CREATE TABLE event_user ("
-    --                  , 
-    --                  ])
 
 getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
