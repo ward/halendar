@@ -61,7 +61,9 @@ createTables conn = do
                       , "start TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,"
                       , "end TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,"
                       , "repeat INTEGER DEFAULT 0,"
-                      , "user_id INTEGER)" -- TODO: add SQLite foreign key constraint, need to know user table name for that
+                      , "user_id INTEGER,"
+                      -- Take note: if auth spec changes, this needs changing to
+                      , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
     -- Given its a relation of user 1:many events, we can just put foreign key
     -- in the events database, no?
