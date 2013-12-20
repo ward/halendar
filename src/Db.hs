@@ -35,7 +35,6 @@ data Event = Event
     , eventOwner :: Int
     } deriving (Show)
 
--- TODO: Need instance of fromRow most likely?
 -- TODO: Can't this be written more concisely?
 instance FromRow Event where
   fromRow = Event <$> field <*> field <*> field <*> field <*> field <*> field <*> field
