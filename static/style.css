@@ -3,6 +3,10 @@ body {
     width: 40em;
     margin: 0px auto;
 }
+header #logo {
+    width: 1em;
+    height: 1em;
+}
 /* Used for the "Hello <USER>!" */
 header h4 {
     text-align: right;

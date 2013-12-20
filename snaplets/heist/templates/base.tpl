@@ -8,7 +8,10 @@
     </head>
     <body>
         <header>
-            <h1>Halendar</h1>
+            <h1>
+                <img src="/favicon.png" id="logo" alt="" />
+                Halendar
+            </h1>
             <ifLoggedIn>
                 <h4>Hello, <loggedInUser />! (<a href="/signout">Sign out</a>)</h4>
             </ifLoggedIn>
