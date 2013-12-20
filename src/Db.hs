@@ -8,6 +8,7 @@ module Db (
   , saveEvent
   , getEventsForUser) where
 
+import           Control.Applicative
 import           Control.Monad
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
@@ -35,6 +36,9 @@ data Event = Event
     } deriving (Show)
 
 -- TODO: Need instance of fromRow most likely?
+-- TODO: Can't this be written more concisely?
+instance FromRow Event where
+  fromRow = Event <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 tableExists :: S.Connection -> String -> IO Bool
 tableExists conn tblName = do
