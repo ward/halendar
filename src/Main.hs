@@ -28,7 +28,8 @@ instance HasHeist App where heistLens = subSnaplet heist
 routes :: [(ByteString, Handler App App ())]
 routes = [
     ("/signup", with auth handleNewUser),
-    ("/signin", with auth handleLogin),
+    ("/signin", with auth handleSignin),
+    ("/signout", with auth handleSignout),
     --("/navigate", writeText "Navigates the calendar"),
     --("/publish", writeText "Publish an event"),
     --("/delete", writeText "Delete an event"),
@@ -56,8 +57,13 @@ handleNewUser = method GET handleForm <|> method POST handleFormSubmit
         handleForm = render "signup"
         handleFormSubmit = registerUser "username" "password" >> redirect "/"
 
-handleLogin :: Handler App (AuthManager App) ()
-handleLogin = method GET handleForm <|> method POST handleFormSubmit
+-- Triggers on the /signin page
+handleSignin :: Handler App (AuthManager App) ()
+handleSignin = method GET handleForm <|> method POST handleFormSubmit
     where
         handleForm = render "signin"
         handleFormSubmit = loginUser "username" "password" Nothing (\_ -> return ()) (redirect "/")
+
+-- Triggers on the /signout page
+handleSignout :: Handler App (AuthManager App) ()
+handleSignout = logout >> redirect "/"
