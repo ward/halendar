@@ -65,7 +65,7 @@ handleSignin :: Handler App (AuthManager App) ()
 handleSignin = method GET handleForm <|> method POST handleFormSubmit
     where
         handleForm = render "signin"
-        handleFormSubmit = loginUser "username" "password" Nothing (\_ -> return ()) (redirect "/")
+        handleFormSubmit = loginUser "username" "password" Nothing (\_ -> redirect "/signin") (redirect "/")
 
 -- Triggers on the /signout page
 handleSignout :: Handler App (AuthManager App) ()
