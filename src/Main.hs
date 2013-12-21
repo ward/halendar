@@ -89,8 +89,10 @@ withLoggedInUser action =
                            Nothing  -> redirect "/signin"
 
 handleEventNew :: Handler App (AuthManager App) ()
-handleEventNew = method GET handleForm <|> method POST handleFormSubmit
+handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withLoggedInUser handleFormSubmit)
     where
-        handleForm = render "event/new"
-        handleFormSubmit = redirect "/"
+        handleForm :: Db.User -> Handler App (AuthManager App) ()
+        handleForm _ = render "event/new"
+        handleFormSubmit :: Db.User -> Handler App (AuthManager App) ()
+        handleFormSubmit _ = redirect "/"
 
