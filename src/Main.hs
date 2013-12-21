@@ -84,16 +84,9 @@ withLoggedInUser action =
     where
         go :: Maybe AuthUser -> Handler App (AuthManager App) ()
         go Nothing = redirect "/signin"
-        go (Just u) = do
-            -- userId returns Maybe UserId
-            --uid <- userId u
-            -- uid is now a Text type from Data.Text
-            --let uid' = read . T.unpack $ unUid uid
-            action (Db.User 1 (userLogin u))
-        --where
-        --    getUserId u = do
-        --        uid <- userId u
-        --        read . T.unpack
+        go (Just u) = case userId u of
+                           Just uid -> action (Db.User (read . T.unpack $ unUid uid) (userLogin u))
+                           Nothing  -> redirect "/signin"
 
 handleEventNew :: Handler App (AuthManager App) ()
 handleEventNew = method GET handleForm <|> method POST handleFormSubmit
