@@ -18,9 +18,11 @@ import           Snap.Snaplet.SqliteSimple
 
 import           Application
 
--- TODO: How does this relate to the Auth user?
--- Seems this is used as a simplified User, the example fills this up with only
--- the ID and the login name (in withLoginUser)
+-- AuthUser is turned into this type.
+-- From this it also follows that we expect to only ever need the UID and the
+-- login name of a user in our program.
+-- If this changes: refactoring fun times!
+-- User ID login
 data User = User Int T.Text
 
 data Event = Event
@@ -61,7 +63,7 @@ createTables conn = do
                       , "end TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,"
                       , "repeat INTEGER DEFAULT 0,"
                       , "user_id INTEGER,"
-                      -- Take note: if auth spec changes, this needs changing to
+                      -- Take note: if auth's spec changes, this needs changing to
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
 
