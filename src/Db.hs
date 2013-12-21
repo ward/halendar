@@ -71,13 +71,17 @@ getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
     query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = ?" (Only user_id)
 
-saveEvent :: Event -> Handler App Sqlite ()
-saveEvent e = execute "INSERT INTO events (id, title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?,?)"
-                      ( eventId e
-                      , eventTitle e
-                      , eventDescription e
-                      , eventStart e
-                      , eventEnd e
-                      , eventRepeat e
-                      , eventOwner e
-                      )
+--saveEvent :: Event -> Handler App Sqlite ()
+--saveEvent e = execute "INSERT INTO events (id, title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?,?)"
+--                      ( eventId e
+--                      , eventTitle e
+--                      , eventDescription e
+--                      , eventStart e
+--                      , eventEnd e
+--                      , eventRepeat e
+--                      , eventOwner e
+--                      )
+
+saveEvent :: Maybe [T.Text] -> Handler App Sqlite ()
+saveEvent Nothing = return ()
+saveEvent (Just _) = execute_ "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = 1"
