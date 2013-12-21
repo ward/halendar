@@ -6,6 +6,7 @@ import           Control.Applicative
 import           Control.Concurrent
 import           Control.Lens.TH
 import           Data.ByteString (ByteString)
+import qualified Data.Text as T
 import           Snap
 import           Snap.Core
 import           Snap.Util.FileServe
@@ -71,9 +72,32 @@ handleSignin = method GET handleForm <|> method POST handleFormSubmit
 handleSignout :: Handler App (AuthManager App) ()
 handleSignout = logout >> redirect "/"
 
+-- This function can be used for every page that requires you to be logged in.
+-- If not logged in, you are redirect to the signin page
+--    (Downside: your target page is forgotten)
+-- If logged in, the current user is turned into the User type defined in Db.hs
+-- then this is passed into the function `action'
+-- Based on the example in snaplet-sqlite-simple
+withLoggedInUser :: (Db.User -> Handler App (AuthManager App) ()) -> Handler App (AuthManager App) ()
+withLoggedInUser action =
+    currentUser >>= go
+    where
+        go :: Maybe AuthUser -> Handler App (AuthManager App) ()
+        go Nothing = redirect "/signin"
+        go (Just u) = do
+            -- userId returns Maybe UserId
+            --uid <- userId u
+            -- uid is now a Text type from Data.Text
+            --let uid' = read . T.unpack $ unUid uid
+            action (Db.User 1 (userLogin u))
+        --where
+        --    getUserId u = do
+        --        uid <- userId u
+        --        read . T.unpack
 
 handleEventNew :: Handler App (AuthManager App) ()
 handleEventNew = method GET handleForm <|> method POST handleFormSubmit
     where
         handleForm = render "event/new"
         handleFormSubmit = redirect "/"
+
