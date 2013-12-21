@@ -26,9 +26,7 @@ routes = [
     ("/signup", with auth handleNewUser),
     ("/signin", with auth handleSignin),
     ("/signout", with auth handleSignout),
-    --("/navigate", writeText "Navigates the calendar"),
-    --("/publish", writeText "Publish an event"),
-    --("/delete", writeText "Delete an event"),
+    ("/event/new", with auth handleEventNew),
     ("", serveDirectory "static")
     ]
 
@@ -72,3 +70,10 @@ handleSignin = method GET handleForm <|> method POST handleFormSubmit
 -- Triggers on the /signout page
 handleSignout :: Handler App (AuthManager App) ()
 handleSignout = logout >> redirect "/"
+
+
+handleEventNew :: Handler App (AuthManager App) ()
+handleEventNew = method GET handleForm <|> method POST handleFormSubmit
+    where
+        handleForm = render "event/new"
+        handleFormSubmit = redirect "/"
