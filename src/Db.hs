@@ -73,10 +73,10 @@ getEventsForUser (User user_id _) =
     query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = ?" (Only user_id)
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
-saveEvent (User uid _) parameters = saveEvent' uid (parseEventParameters parameters)
+saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
     where
-        saveEvent' uid Nothing = return ()
-        saveEvent' uid (Just (title, description, start, end, repeats)) =
+        saveEvent' Nothing = return ()
+        saveEvent' (Just (title, description, start, end, repeats)) =
             execute "INSERT INTO events (title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?)"
                       ( title
                       , description
