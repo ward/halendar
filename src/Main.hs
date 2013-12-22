@@ -115,4 +115,5 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
         handleShowcomment :: Db.User -> Handler App (AuthManager App) ()
         handleShowcomment _ = do
             eventid <- getParam "eventid"
-            renderWithSplices "event/view" ("test" ## T.pack "Hello") -- TODO HOW TO DO THIS
+            -- TODO HOW TO DO THIS
+            renderWithSplices "event/view" ("test" ## I.textSplice "hello")
