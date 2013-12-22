@@ -95,20 +95,13 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
         handleForm :: Db.User -> Handler App (AuthManager App) ()
         handleForm _ = render "event/new"
         handleFormSubmit :: Db.User -> Handler App (AuthManager App) ()
-        handleFormSubmit _ = do
-            -- Vars become Maybe ByteString
-            --title       <- getParam "title"
-            --description <- getParam "description"
-            --start       <- getParam "start"
-            --end         <- getParam "end"
-            ---- Prelude already has repeat
-            --repeats     <- getParam "repeat"
-            -- withTop prevents type mismatch since saveEvent returns
-            -- Handler App Sqlite ()
+        handleFormSubmit user = do
             -- parameters is now [Maybe ByteString]
             parameters <- mapM getParam ["title", "description", "start", "end", "repeat"]
             -- sequence parameters is Maybe [ByteString]
             -- decode into Maybe [T.Text]
-            withTop db $ saveEvent (sequence parameters >>= (\a -> Just (map T.decodeUtf8 a)))
+            -- withTop prevents type mismatch since saveEvent returns
+            -- Handler App Sqlite ()
+            withTop db $ saveEvent user (sequence parameters >>= (\a -> Just (map T.decodeUtf8 a)))
             redirect "/"
 
