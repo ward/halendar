@@ -71,7 +71,8 @@ createTables conn = do
 
 getEvent :: Maybe Int -> Handler App Sqlite [Event]
 getEvent Nothing = return []
-getEvent (Just eid) = return []
+getEvent (Just eid) =
+    query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE id = ?" (Only eid)
 
 getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
