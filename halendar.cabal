@@ -26,7 +26,8 @@ Executable halendar
     snaplet-sqlite-simple,
     sqlite-simple,
     text,
-    time
+    time,
+    heist
 
   if impl(ghc >= 6.12.0)
     ghc-options: -threaded -Wall -fwarn-tabs -funbox-strict-fields -O2

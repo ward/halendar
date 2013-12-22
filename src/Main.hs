@@ -18,6 +18,9 @@ import           Snap.Snaplet.Auth.Backends.SqliteSimple
 import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Snaplet.SqliteSimple
+--import           Heist
+import           Heist.SpliceAPI
+import qualified Heist.Interpreted as I
 ----
 import           Application
 import           Db
@@ -29,6 +32,7 @@ routes = [
     ("/signin", with auth handleSignin),
     ("/signout", with auth handleSignout),
     ("/event/new", with auth handleEventNew),
+    ("/event/view/:eventid", with auth handleEventView),
     ("", serveDirectory "static")
     ]
 
@@ -105,3 +109,10 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             withTop db $ saveEvent user (sequence parameters >>= (\a -> Just (map T.decodeUtf8 a)))
             redirect "/"
 
+handleEventView :: Handler App (AuthManager App) ()
+handleEventView = method GET (withLoggedInUser handleShowcomment)
+    where
+        handleShowcomment :: Db.User -> Handler App (AuthManager App) ()
+        handleShowcomment _ = do
+            eventid <- getParam "eventid"
+            renderWithSplices "event/view" ("test" ## T.pack "Hello") -- TODO HOW TO DO THIS
