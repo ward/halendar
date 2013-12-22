@@ -6,6 +6,7 @@ module Db (
   , Event(..)
   , createTables
   , saveEvent
+  , getEvent
   , getEventsForUser) where
 
 import           Control.Applicative
@@ -67,6 +68,10 @@ createTables conn = do
                       -- Take note: if auth's spec changes, this needs changing to
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
+
+getEvent :: Maybe T.Text -> Handler App Sqlite [Event]
+getEvent Nothing = return []
+getEvent (Just eid) = return []
 
 getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =

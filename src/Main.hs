@@ -8,6 +8,7 @@ import           Control.Lens.TH
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Text.Read
 import           Snap
 import           Snap.Core
 import           Snap.Util.FileServe
@@ -115,5 +116,11 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
         handleShowcomment :: Db.User -> Handler App (AuthManager App) ()
         handleShowcomment _ = do
             eventid <- getParam "eventid"
-            -- TODO HOW TO DO THIS
-            renderWithSplices "event/view" ("test" ## I.textSplice "hello")
+            event <- with db $ getEvent . readMaybe . T.unpack . T.decodeUtf8 eventid
+            case event of
+                [] -> redirect "/"
+                [e] -> renderWithSplices "event/view" $ splices e
+                _ -> redirect "/"
+        splices event = do
+            "test" ## I.textSplice "hello"
+            "eventid" ## I.textSplice "five"
