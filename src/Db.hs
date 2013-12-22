@@ -13,6 +13,7 @@ import           Control.Monad
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
+import           Text.Read
 import           Snap.Snaplet
 import           Snap.Snaplet.SqliteSimple
 
@@ -83,5 +84,19 @@ getEventsForUser (User user_id _) =
 --                      )
 
 saveEvent :: Maybe [T.Text] -> Handler App Sqlite ()
-saveEvent Nothing = return ()
-saveEvent (Just _) = execute_ "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = 1"
+saveEvent parameters = return ()
+
+--saveEvent Nothing = return ()
+--saveEvent (Just _) = execute_ "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = 1"
+
+parseEventParameters :: Maybe [T.Text]
+                     -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
+parseEventParameters Nothing = Nothing
+parseEventParameters (Just [title, description, start, end, repeats]) = do
+    start'   <- readMaybe (T.unpack start)   :: Maybe UTCTime
+    end'     <- readMaybe (T.unpack end)     :: Maybe UTCTime
+    repeats' <- readMaybe (T.unpack repeats) :: Maybe Int
+    return (title, description, start', end', repeats')
+parseEventParameters _ = Nothing
+
+-- TODO: Separate functions from T.Text to UTCTime, repeat, ...?
