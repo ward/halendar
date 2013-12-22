@@ -128,3 +128,7 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
             "eventid" ## I.textSplice . T.pack . show $ eventId event
             "eventtitle" ## I.textSplice (eventTitle event)
             "eventdescription" ## I.textSplice (eventDescription event)
+            "eventstart" ## I.textSplice . T.pack . show $ eventStart event
+            "eventend" ## I.textSplice . T.pack . show $ eventEnd event
+            "eventrepeat" ## I.textSplice . T.pack . show $ eventRepeat event
+            "eventowner" ## I.textSplice . T.pack . show $ eventOwner event
