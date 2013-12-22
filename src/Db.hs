@@ -69,7 +69,7 @@ createTables conn = do
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
 
-getEvent :: Maybe T.Text -> Handler App Sqlite [Event]
+getEvent :: Maybe Int -> Handler App Sqlite [Event]
 getEvent Nothing = return []
 getEvent (Just eid) = return []
 

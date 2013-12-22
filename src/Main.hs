@@ -116,11 +116,14 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
         handleShowcomment :: Db.User -> Handler App (AuthManager App) ()
         handleShowcomment _ = do
             eventid <- getParam "eventid"
-            event <- with db $ getEvent . readMaybe . T.unpack . T.decodeUtf8 eventid
+            event <- withTop db (findEvent eventid)
             case event of
                 [] -> redirect "/"
                 [e] -> renderWithSplices "event/view" $ splices e
                 _ -> redirect "/"
+        findEvent :: Maybe ByteString -> Handler App Sqlite [Event]
+        findEvent Nothing = return []
+        findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
         splices event = do
             "test" ## I.textSplice "hello"
             "eventid" ## I.textSplice "five"
