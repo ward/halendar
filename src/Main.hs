@@ -125,5 +125,6 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
         splices event = do
-            "test" ## I.textSplice "hello"
-            "eventid" ## I.textSplice "five"
+            "eventid" ## I.textSplice . T.pack . show $ eventId event
+            "eventtitle" ## I.textSplice (eventTitle event)
+            "eventdescription" ## I.textSplice (eventDescription event)
