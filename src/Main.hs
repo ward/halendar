@@ -34,6 +34,7 @@ routes = [
     ("/signout", with auth handleSignout),
     ("/event/new", with auth handleEventNew),
     ("/event/view/:eventid", with auth handleEventView),
+    ("/event/delete/:eventid", with auth handleEventDelete),
     ("", serveDirectory "static")
     ]
 
@@ -111,10 +112,10 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             redirect "/"
 
 handleEventView :: Handler App (AuthManager App) ()
-handleEventView = method GET (withLoggedInUser handleShowcomment)
+handleEventView = method GET (withLoggedInUser handleShowEvent)
     where
-        handleShowcomment :: Db.User -> Handler App (AuthManager App) ()
-        handleShowcomment _ = do
+        handleShowEvent :: Db.User -> Handler App (AuthManager App) ()
+        handleShowEvent _ = do
             eventid <- getParam "eventid"
             event <- withTop db (findEvent eventid)
             case event of
@@ -132,3 +133,12 @@ handleEventView = method GET (withLoggedInUser handleShowcomment)
             "eventend" ## I.textSplice . T.pack . show $ eventEnd event
             "eventrepeat" ## I.textSplice . T.pack . show $ eventRepeat event
             "eventowner" ## I.textSplice . T.pack . show $ eventOwner event
+
+handleEventDelete :: Handler App (AuthManager App) ()
+handleEventDelete = method DELETE (withLoggedInUser handleDeleteEvent)
+    where
+        handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
+        handleDeleteEvent user = do
+            eventid <- getParam "eventid"
+            withTop db (deleteEvent user eventid)
+            redirect "/"

@@ -65,18 +65,19 @@ createTables conn = do
                       , "end TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,"
                       , "repeat INTEGER DEFAULT 0,"
                       , "user_id INTEGER,"
-                      -- Take note: if auth's spec changes, this needs changing to
+                      , "deleted INTEGER DEFAULT 0,"
+                      -- Take note: if auth's spec changes, this needs changing too
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
 
 getEvent :: Maybe Int -> Handler App Sqlite [Event]
 getEvent Nothing = return []
 getEvent (Just eid) =
-    query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE id = ?" (Only eid)
+    query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND id = ?" (Only eid)
 
 getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
-    query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = ?" (Only user_id)
+    query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND user_id = ?" (Only user_id)
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
 saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
@@ -101,3 +102,10 @@ parseEventParameters (Just [title, description, start, end, repeats]) = do
     repeats' <- readMaybe (T.unpack repeats) :: Maybe Int
     return (title, description, start', end', repeats')
 parseEventParameters _ = Nothing
+
+-- TODO Move the Maybe ByteString to Event part out of this function
+deleteEvent :: User -> Maybe ByteString -> Handler App Sqlite ()
+deleteEvent (User uid _) (Just eid) = do
+    event <- getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
+    execute "UPDATE events SET deleted = 1 WHERE id = ? AND user_id = ?" (eventId event,uid)
+
