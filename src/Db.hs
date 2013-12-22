@@ -72,22 +72,19 @@ getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
     query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = ?" (Only user_id)
 
---saveEvent :: Event -> Handler App Sqlite ()
---saveEvent e = execute "INSERT INTO events (id, title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?,?)"
---                      ( eventId e
---                      , eventTitle e
---                      , eventDescription e
---                      , eventStart e
---                      , eventEnd e
---                      , eventRepeat e
---                      , eventOwner e
---                      )
-
-saveEvent :: Maybe [T.Text] -> Handler App Sqlite ()
-saveEvent parameters = return ()
-
---saveEvent Nothing = return ()
---saveEvent (Just _) = execute_ "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE user_id = 1"
+saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
+saveEvent (User uid _) parameters = saveEvent' uid (parseEventParameters parameters)
+    where
+        saveEvent' uid Nothing = return ()
+        saveEvent' uid (Just (title, description, start, end, repeats)) =
+            execute "INSERT INTO events (title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?)"
+                      ( title
+                      , description
+                      , start
+                      , end
+                      , repeats
+                      , uid
+                      )
 
 parseEventParameters :: Maybe [T.Text]
                      -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
@@ -98,5 +95,3 @@ parseEventParameters (Just [title, description, start, end, repeats]) = do
     repeats' <- readMaybe (T.unpack repeats) :: Maybe Int
     return (title, description, start', end', repeats')
 parseEventParameters _ = Nothing
-
--- TODO: Separate functions from T.Text to UTCTime, repeat, ...?
