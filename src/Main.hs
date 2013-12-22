@@ -4,19 +4,19 @@ module Main where
 
 import           Control.Applicative
 import           Control.Concurrent
-import           Control.Lens.TH
+--import           Control.Lens.TH
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Text.Read
 import           Snap
-import           Snap.Core
+--import           Snap.Core
 import           Snap.Util.FileServe
-import           Snap.Http.Server
+--import           Snap.Http.Server
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.SqliteSimple
-import           Snap.Snaplet.Session
+--import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Snaplet.SqliteSimple
 --import           Heist
