@@ -8,6 +8,7 @@ import           Control.Concurrent
 import           Data.ByteString (ByteString)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import           Data.Time
 import           Text.Read
 import           Snap
 --import           Snap.Core
@@ -25,6 +26,7 @@ import qualified Heist.Interpreted as I
 ----
 import           Application
 import           Db
+import           Time
 
 
 routes :: [(ByteString, Handler App App ())]
@@ -35,6 +37,10 @@ routes = [
     ("/event/new", with auth handleEventNew),
     ("/event/view/:eventid", with auth handleEventView),
     ("/event/delete/:eventid", with auth handleEventDelete),
+    ("/calendar", with auth handleCalendar),
+    ("/calendar/:year", with auth handleCalendar),
+    ("/calendar/:year/:month", with auth handleCalendar),
+    ("/calendar/:year/:month/:day", with auth handleCalendar),
     ("", serveDirectory "static")
     ]
 
@@ -147,3 +153,33 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         findEvent :: Maybe ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
+
+handleCalendar :: Handler App (AuthManager App) ()
+handleCalendar = method GET (withLoggedInUser go)
+    where
+        go :: Db.User -> Handler App (AuthManager App) ()
+        go _ = do
+            year <- getParam "year"
+            month <- getParam "month"
+            day <- getParam "day"
+            dispatch (readBSMaybe year) (readBSMaybe month) (readBSMaybe day)
+        dispatch :: Maybe Int -> Maybe Int -> Maybe Int -> Handler App (AuthManager App) ()
+        dispatch Nothing     _            _          = handleCalendarRedirect
+        dispatch (Just year) Nothing      _          = handleCalendarYear year
+        dispatch (Just year) (Just month) _          = handleCalendarMonth year month
+        dispatch (Just year) (Just month) (Just day) = handleCalendarDay year month day
+
+handleCalendarRedirect :: Handler App (AuthManager App) ()
+handleCalendarRedirect = do
+    now <- liftIO getCurrentTime
+    redirect $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
+
+handleCalendarYear year = redirect "/"
+handleCalendarMonth year month = redirect "/"
+handleCalendarDay year month day = redirect "/"
+
+-- Helper function. getParam returns Maybe ByteString and we always want to
+-- convert it to something
+readBSMaybe :: Read a => Maybe ByteString -> Maybe a
+readBSMaybe Nothing = Nothing
+readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
