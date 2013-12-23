@@ -164,10 +164,10 @@ handleCalendar = method GET (withLoggedInUser go)
             month <- getParam "month"
             day <- getParam "day"
             dispatch (readBSMaybe year) (readBSMaybe month) (readBSMaybe day)
-        dispatch :: Maybe Int -> Maybe Int -> Maybe Int -> Handler App (AuthManager App) ()
+        dispatch :: Maybe Integer -> Maybe Int -> Maybe Int -> Handler App (AuthManager App) ()
         dispatch Nothing     _            _          = handleCalendarRedirect
         dispatch (Just year) Nothing      _          = handleCalendarYear year
-        dispatch (Just year) (Just month) _          = handleCalendarMonth year month
+        dispatch (Just year) (Just month) Nothing    = handleCalendarMonth year month
         dispatch (Just year) (Just month) (Just day) = handleCalendarDay year month day
 
 handleCalendarRedirect :: Handler App (AuthManager App) ()
@@ -175,9 +175,12 @@ handleCalendarRedirect = do
     now <- liftIO getCurrentTime
     redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
-handleCalendarYear year = redirect "/"
-handleCalendarMonth year month = redirect "/"
-handleCalendarDay year month day = redirect "/"
+handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
+handleCalendarYear year = render "calendar/year"
+handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
+handleCalendarMonth year month = render "calendar/month"
+handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
+handleCalendarDay year month day = render "calendar/day"
 
 -- Helper function. getParam returns Maybe BS.ByteString and we always want to
 -- convert it to something
