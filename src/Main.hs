@@ -5,7 +5,8 @@ module Main where
 import           Control.Applicative
 import           Control.Concurrent
 --import           Control.Lens.TH
-import           Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import           Data.Time
@@ -29,7 +30,7 @@ import           Db
 import           Time
 
 
-routes :: [(ByteString, Handler App App ())]
+routes :: [(BS.ByteString, Handler App App ())]
 routes = [
     ("/signup", with auth handleNewUser),
     ("/signin", with auth handleSignin),
@@ -108,9 +109,9 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
         handleForm _ = render "event/new"
         handleFormSubmit :: Db.User -> Handler App (AuthManager App) ()
         handleFormSubmit user = do
-            -- parameters is now [Maybe ByteString]
+            -- parameters is now [Maybe BS.ByteString]
             parameters <- mapM getParam ["title", "description", "start", "end", "repeat"]
-            -- sequence parameters is Maybe [ByteString]
+            -- sequence parameters is Maybe [BS.ByteString]
             -- decode into Maybe [T.Text]
             -- withTop prevents type mismatch since saveEvent returns
             -- Handler App Sqlite ()
@@ -128,7 +129,7 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
                 [] -> redirect "/"
                 [e] -> renderWithSplices "event/view" $ splices e
                 _ -> redirect "/"
-        findEvent :: Maybe ByteString -> Handler App Sqlite [Event]
+        findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
         splices event = do
@@ -150,7 +151,7 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
             case event of
                 [e] -> withTop db (deleteEvent user e) >> render "event/delete"
                 _ -> redirect "/"
-        findEvent :: Maybe ByteString -> Handler App Sqlite [Event]
+        findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
@@ -172,14 +173,14 @@ handleCalendar = method GET (withLoggedInUser go)
 handleCalendarRedirect :: Handler App (AuthManager App) ()
 handleCalendarRedirect = do
     now <- liftIO getCurrentTime
-    redirect $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
+    redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
 handleCalendarYear year = redirect "/"
 handleCalendarMonth year month = redirect "/"
 handleCalendarDay year month day = redirect "/"
 
--- Helper function. getParam returns Maybe ByteString and we always want to
+-- Helper function. getParam returns Maybe BS.ByteString and we always want to
 -- convert it to something
-readBSMaybe :: Read a => Maybe ByteString -> Maybe a
+readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
 readBSMaybe Nothing = Nothing
 readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
