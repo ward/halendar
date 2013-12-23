@@ -127,12 +127,14 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
             event <- withTop db (findEvent eventid)
             case event of
                 [] -> redirect "/"
-                [e] -> renderWithSplices "event/view" $ splices e
+                [e] -> renderWithSplices "event/view" $ renderEvent e
                 _ -> redirect "/"
         findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
-        splices event = do
+
+renderEvent :: Event -> Splices (SnapletISplice b)
+renderEvent event = do
             "eventid" ## I.textSplice . T.pack . show $ eventId event
             "eventtitle" ## I.textSplice (eventTitle event)
             "eventdescription" ## I.textSplice (eventDescription event)
