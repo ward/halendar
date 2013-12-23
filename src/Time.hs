@@ -9,7 +9,10 @@
 module Time (
     repeatDaily
   , repeatMonthly
-  , repeatYearly) where
+  , repeatYearly
+  , getYear
+  , getMonth
+  , getDay) where
 
 
 import Data.Time
@@ -43,3 +46,10 @@ addYear (UTCTime day difftime) = UTCTime nextOkYear difftime
     where
         nextOkYear :: Day
         nextOkYear = head $ dropWhile (differentday day) $ zipWith addGregorianYearsClip [1..] (repeat day)
+
+getYear  :: UTCTime -> Integer
+getYear  = (\(y,_,_) -> y) . toGregorian . utctDay
+getMonth :: UTCTime -> Int
+getMonth = (\(_,m,_) -> m) . toGregorian . utctDay
+getDay   :: UTCTime -> Int
+getDay   = (\(_,_,d) -> d) . toGregorian . utctDay
