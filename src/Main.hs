@@ -108,7 +108,7 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             -- decode into Maybe [T.Text]
             -- withTop prevents type mismatch since saveEvent returns
             -- Handler App Sqlite ()
-            withTop db $ saveEvent user (sequence parameters >>= (\a -> Just (map T.decodeUtf8 a)))
+            withTop db $ saveEvent user (sequence parameters >>= (Just . map T.decodeUtf8))
             redirect "/"
 
 handleEventView :: Handler App (AuthManager App) ()

@@ -105,6 +105,6 @@ parseEventParameters (Just [title, description, start, end, repeats]) = do
 parseEventParameters _ = Nothing
 
 deleteEvent :: User -> Event -> Handler App Sqlite ()
-deleteEvent (User uid _) event = do
+deleteEvent (User uid _) event =
     execute "UPDATE events SET deleted = 1 WHERE id = ? AND user_id = ?" (eventId event,uid)
 

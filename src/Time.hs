@@ -2,6 +2,10 @@
 -- have the particular day we are following. Eg 31 January will have 31 March
 -- next in the line.
 
+-- TODO, we are using iterate, which doesn't have a strict version built in
+-- Use http://stackoverflow.com/q/8909997/411495 ?
+-- See also freenode/#haskell around 2013-12-23 15:30 UTC
+
 module Time (
     repeatDaily
   , repeatMonthly
@@ -11,13 +15,13 @@ module Time (
 import Data.Time
 
 repeatDaily :: UTCTime -> [UTCTime]
-repeatDaily time = iterate addDay time
+repeatDaily = iterate addDay
 
 addDay :: UTCTime -> UTCTime
 addDay t = UTCTime (addDays 1 $ utctDay t) (utctDayTime t)
 
 repeatMonthly :: UTCTime -> [UTCTime]
-repeatMonthly time = iterate addMonth time
+repeatMonthly = iterate addMonth
 
 addMonth :: UTCTime -> UTCTime
 addMonth (UTCTime day difftime) = UTCTime nextOkMonth difftime
@@ -33,7 +37,7 @@ differentthirdtuple :: Eq c => (a, b, c) -> (a, b, c) -> Bool
 differentthirdtuple (_, _, x3) (_, _, y3) = x3 /= y3
 
 repeatYearly :: UTCTime -> [UTCTime]
-repeatYearly time = iterate addYear time
+repeatYearly = iterate addYear
 
 addYear (UTCTime day difftime) = UTCTime nextOkYear difftime
     where
