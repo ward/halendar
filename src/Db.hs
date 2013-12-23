@@ -7,7 +7,8 @@ module Db (
   , createTables
   , saveEvent
   , getEvent
-  , getEventsForUser) where
+  , getEventsForUser
+  , deleteEvent) where
 
 import           Control.Applicative
 import           Control.Monad
@@ -103,9 +104,7 @@ parseEventParameters (Just [title, description, start, end, repeats]) = do
     return (title, description, start', end', repeats')
 parseEventParameters _ = Nothing
 
--- TODO Move the Maybe ByteString to Event part out of this function
-deleteEvent :: User -> Maybe ByteString -> Handler App Sqlite ()
-deleteEvent (User uid _) (Just eid) = do
-    event <- getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
+deleteEvent :: User -> Event -> Handler App Sqlite ()
+deleteEvent (User uid _) event = do
     execute "UPDATE events SET deleted = 1 WHERE id = ? AND user_id = ?" (eventId event,uid)
 

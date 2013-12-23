@@ -9,4 +9,8 @@
     <p><eventdescription /></p>
     <h4>Owner</h4>
     <p><eventowner /></p>
+    <h4>Delete</h4>
+    <form action="/event/delete/${eventid}" method="POST">
+        <input type="submit" value="Delete event" />
+    </form>
 </apply>

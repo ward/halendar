@@ -135,10 +135,15 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
             "eventowner" ## I.textSplice . T.pack . show $ eventOwner event
 
 handleEventDelete :: Handler App (AuthManager App) ()
-handleEventDelete = method DELETE (withLoggedInUser handleDeleteEvent)
+handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
         handleDeleteEvent user = do
             eventid <- getParam "eventid"
-            withTop db (deleteEvent user eventid)
-            redirect "/"
+            event <- withTop db $ findEvent eventid
+            case event of
+                [e] -> withTop db (deleteEvent user e) >> render "event/delete"
+                _ -> redirect "/"
+        findEvent :: Maybe ByteString -> Handler App Sqlite [Event]
+        findEvent Nothing = return []
+        findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
