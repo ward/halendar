@@ -4,7 +4,6 @@ module Main where
 
 import           Control.Applicative
 import           Control.Concurrent
---import           Control.Lens.TH
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
 import qualified Data.Text as T
@@ -12,16 +11,12 @@ import qualified Data.Text.Encoding as T
 import           Data.Time
 import           Text.Read
 import           Snap
---import           Snap.Core
 import           Snap.Util.FileServe
---import           Snap.Http.Server
 import           Snap.Snaplet.Heist
 import           Snap.Snaplet.Auth
 import           Snap.Snaplet.Auth.Backends.SqliteSimple
---import           Snap.Snaplet.Session
 import           Snap.Snaplet.Session.Backends.CookieSession
 import           Snap.Snaplet.SqliteSimple
---import           Heist
 import           Heist.SpliceAPI
 import qualified Heist.Interpreted as I
 ----
@@ -103,7 +98,7 @@ withLoggedInUser action =
                            Nothing  -> redirect "/signin"
 
 --------------------------------------------------------------------------------
--- Event handling
+-- Event handling (new/view/delete)
 handleEventNew :: Handler App (AuthManager App) ()
 handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withLoggedInUser handleFormSubmit)
     where
@@ -135,17 +130,6 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
---renderEvent :: Event -> Splices (SnapletISplice b)
-renderEvent :: Monad n => Event -> Splices (I.Splice n)
-renderEvent event = do
-            "eventid" ## I.textSplice . T.pack . show $ eventId event
-            "eventtitle" ## I.textSplice (eventTitle event)
-            "eventdescription" ## I.textSplice (eventDescription event)
-            "eventstart" ## I.textSplice . T.pack . show $ eventStart event
-            "eventend" ## I.textSplice . T.pack . show $ eventEnd event
-            "eventrepeat" ## I.textSplice . T.pack . show $ eventRepeat event
-            "eventowner" ## I.textSplice . T.pack . show $ eventOwner event
-
 handleEventDelete :: Handler App (AuthManager App) ()
 handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
@@ -159,6 +143,21 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
+
+--------------------------------------------------------------------------------
+-- Turn an event into splices. Needed for rendering.
+renderEvent :: Monad n => Event -> Splices (I.Splice n)
+renderEvent event = do
+    "eventid"          ## I.textSplice . T.pack . show $ eventId event
+    "eventtitle"       ## I.textSplice (eventTitle event)
+    "eventdescription" ## I.textSplice (eventDescription event)
+    "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
+    "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
+    "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
+    "eventowner"       ## I.textSplice . T.pack . show $ eventOwner event
+
+renderEvents :: [Event] -> SnapletISplice App
+renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
 
 --------------------------------------------------------------------------------
 -- Calendar handling
@@ -190,8 +189,6 @@ handleCalendarMonth year month = do
     events <- withTop db $ getEventsForUser (Db.User 1 "")
     renderWithSplices "calendar/month" $ "events" ## (renderEvents events)
     where
-        renderEvents :: [Event] -> SnapletISplice App
-        renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
         fillItIn :: Splices (SnapletISplice b)
         fillItIn = do
             "year" ## I.textSplice . T.pack . show $ year
