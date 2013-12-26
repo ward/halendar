@@ -94,7 +94,18 @@ getEventsForRange start end = do
         nonRepeating :: Handler App Sqlite [Event]
         nonRepeating = query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat = 0 AND ((start BETWEEN ? AND ?) OR (end BETWEEN ? AND ?))" (start, end, start, end)
         repeating :: Handler App Sqlite [Event]
-        repeating = return []
+        repeating = do
+            re <- query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat != 0 AND start < ?" (Only end)
+            return re
+            -- TODO:
+            -- For each event:
+            -- Repeat daily/monthly/yearly -> inf list
+            -- drop while eventend is smaller than end
+            -- take while start is smaller than end
+            -- create events with the relevant start and end dates
+            -- 
+            -- flatten everything
+            --return $ map (d) re
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
 saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
