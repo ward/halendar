@@ -187,12 +187,10 @@ handleCalendarYear year = render "calendar/year"
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
     events <- withTop db $ getEventsForUser (Db.User 1 "")
-    renderWithSplices "calendar/month" $ "events" ## (renderEvents events)
-    where
-        fillItIn :: Splices (SnapletISplice b)
-        fillItIn = do
-            "year" ## I.textSplice . T.pack . show $ year
-            "month" ## I.textSplice . T.pack . show $ month
+    renderWithSplices "calendar/month" $ do
+        "events" ## renderEvents events
+        "year" ## I.textSplice . T.pack . show $ year
+        "month" ## I.textSplice . T.pack . show $ month
 
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
 handleCalendarDay year month day = render "calendar/day"
