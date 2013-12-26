@@ -12,7 +12,9 @@ module Time (
   , repeatYearly
   , getYear
   , getMonth
-  , getDay) where
+  , getDay
+  , startOfMonth
+  , endOfMonth) where
 
 
 import Data.Time
@@ -53,3 +55,14 @@ getMonth :: UTCTime -> Int
 getMonth = (\(_,m,_) -> m) . toGregorian . utctDay
 getDay   :: UTCTime -> Int
 getDay   = (\(_,_,d) -> d) . toGregorian . utctDay
+
+startOfMonth :: UTCTime -> UTCTime
+startOfMonth (UTCTime d _) = UTCTime (toBegin $ toGregorian d) 0
+    where
+        toBegin :: (Integer, Int, Int) -> Day
+        toBegin (y, m, _) = fromGregorian y m 1
+endOfMonth :: UTCTime -> UTCTime
+endOfMonth (UTCTime d _) = UTCTime (toEnd $ toGregorian d) 86401
+    where
+        toEnd :: (Integer, Int, Int) -> Day
+        toEnd (y, m, _) = fromGregorian y m (gregorianMonthLength y m)
