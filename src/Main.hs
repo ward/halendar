@@ -186,7 +186,9 @@ handleCalendarYear year = render "calendar/year"
 
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
-    events <- withTop db $ getEventsForUser (Db.User 1 "")
+    let start = UTCTime (fromGregorian year month 1) 0
+    let end = UTCTime (fromGregorian year month (gregorianMonthLength year month)) 86401
+    events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/month" $ do
         "events" ## renderEvents events
         "year" ## I.textSplice . T.pack . show $ year

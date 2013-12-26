@@ -3,7 +3,7 @@
     <p>List of the events this month.</p>
     <ul>
     <events>
-        <li><eventid /> - <eventtitle /></li>
+        <li><eventid /> - <eventtitle /> (<eventstart />-<eventend />)</li>
     </events>
     </ul>
 </apply>

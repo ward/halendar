@@ -8,6 +8,7 @@ module Db (
   , saveEvent
   , getEvent
   , getEventsForUser
+  , getEventsForRange
   , deleteEvent) where
 
 import           Control.Applicative
@@ -44,6 +45,9 @@ data Event = Event
 instance FromRow Event where
   fromRow = Event <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 
+--------------------------------------------------------------------------------
+-- Database creation
+
 tableExists :: S.Connection -> String -> IO Bool
 tableExists conn tblName = do
     r <- S.query conn "SELECT name FROM sqlite_master WHERE type='table' AND name=?" (Only tblName)
@@ -71,6 +75,7 @@ createTables conn = do
                       , "FOREIGN KEY(user_id) REFERENCES users(uid))"
                       ])
 
+--------------------------------------------------------------------------------
 getEvent :: Maybe Int -> Handler App Sqlite [Event]
 getEvent Nothing = return []
 getEvent (Just eid) =
@@ -79,6 +84,17 @@ getEvent (Just eid) =
 getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
     query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND user_id = ?" (Only user_id)
+
+getEventsForRange :: UTCTime -> UTCTime -> Handler App Sqlite [Event]
+getEventsForRange start end = do
+    nr <- nonRepeating
+    r <- repeating
+    return $ nr ++ r
+    where
+        nonRepeating :: Handler App Sqlite [Event]
+        nonRepeating = query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat = 0 AND ((start BETWEEN ? AND ?) OR (end BETWEEN ? AND ?))" (start, end, start, end)
+        repeating :: Handler App Sqlite [Event]
+        repeating = return []
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
 saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
