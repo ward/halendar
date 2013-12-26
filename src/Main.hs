@@ -102,6 +102,8 @@ withLoggedInUser action =
                            Just uid -> action (Db.User (read . T.unpack $ unUid uid) (userLogin u))
                            Nothing  -> redirect "/signin"
 
+--------------------------------------------------------------------------------
+-- Event handling
 handleEventNew :: Handler App (AuthManager App) ()
 handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withLoggedInUser handleFormSubmit)
     where
@@ -133,7 +135,8 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
-renderEvent :: Event -> Splices (SnapletISplice b)
+--renderEvent :: Event -> Splices (SnapletISplice b)
+renderEvent :: Monad n => Event -> Splices (I.Splice n)
 renderEvent event = do
             "eventid" ## I.textSplice . T.pack . show $ eventId event
             "eventtitle" ## I.textSplice (eventTitle event)
@@ -157,6 +160,8 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
+--------------------------------------------------------------------------------
+-- Calendar handling
 handleCalendar :: Handler App (AuthManager App) ()
 handleCalendar = method GET (withLoggedInUser go)
     where
@@ -179,11 +184,23 @@ handleCalendarRedirect = do
 
 handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
 handleCalendarYear year = render "calendar/year"
+
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
-handleCalendarMonth year month = render "calendar/month"
+handleCalendarMonth year month = do
+    events <- withTop db $ getEventsForUser (Db.User 1 "")
+    renderWithSplices "calendar/month" $ "events" ## (renderEvents events)
+    where
+        renderEvents :: [Event] -> SnapletISplice App
+        renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
+        fillItIn :: Splices (SnapletISplice b)
+        fillItIn = do
+            "year" ## I.textSplice . T.pack . show $ year
+            "month" ## I.textSplice . T.pack . show $ month
+
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
 handleCalendarDay year month day = render "calendar/day"
 
+--------------------------------------------------------------------------------
 -- Helper function. getParam returns Maybe BS.ByteString and we always want to
 -- convert it to something
 readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
