@@ -78,7 +78,7 @@ handleNewUser = method GET handleForm <|> method POST handleFormSubmit
         handleFormSubmit = registerUser "username" "password" >>= afterRegister
         afterRegister :: Either AuthFailure AuthUser -> Handler App (AuthManager App) ()
         afterRegister (Left af) = renderError af
-        afterRegister _ = redirect "/"
+        afterRegister _ = render "_signupsuccess"
 
 -- Triggers on the /signin page
 handleSignin :: Handler App (AuthManager App) ()
@@ -141,7 +141,7 @@ handleEventDelete :: Handler App (AuthManager App) ()
 handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
-        handleDeleteEvent user@(User uid ulogin) = do
+        handleDeleteEvent user@(User uid _) = do
             eventid <- getParam "eventid"
             event <- withTop db $ findEvent eventid
             case event of
