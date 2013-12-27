@@ -148,13 +148,13 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
 -- Turn an event into splices. Needed for rendering.
 renderEvent :: Monad n => Event -> Splices (I.Splice n)
 renderEvent event = do
-    "eventid"          ## I.textSplice . T.pack . show $ eventId event
+    "eventid"          ## toTextSplice eventId event
     "eventtitle"       ## I.textSplice (eventTitle event)
     "eventdescription" ## I.textSplice (eventDescription event)
-    "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
-    "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
-    "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
-    "eventowner"       ## I.textSplice . T.pack . show $ eventOwner event
+    "eventstart"       ## toTextSplice eventStart event
+    "eventend"         ## toTextSplice eventEnd event
+    "eventrepeat"      ## toTextSplice eventRepeat event
+    "eventowner"       ## toTextSplice eventOwner event
 
 renderEvents :: [Event] -> SnapletISplice App
 renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
@@ -181,6 +181,7 @@ handleCalendarRedirect = do
     now <- liftIO getCurrentTime
     redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
+-- TODO: Next 3 are a bit too similar to my liking
 handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
 handleCalendarYear year = do
     let start = UTCTime (fromGregorian year 1 1) 0
@@ -188,9 +189,9 @@ handleCalendarYear year = do
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/year" $ do
         "events" ## renderEvents events
-        "year" ## I.textSplice . T.pack . show $ year
-        "prevyear" ## I.textSplice . T.pack . show $ year - 1
-        "nextyear" ## I.textSplice . T.pack . show $ year + 1
+        "year" ## toTextSplice year
+        "prevyear" ## toTextSplice year - 1
+        "nextyear" ## toTextSplice year + 1
 
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
@@ -199,8 +200,8 @@ handleCalendarMonth year month = do
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/month" $ do
         "events" ## renderEvents events
-        "year" ## I.textSplice . T.pack . show $ year
-        "month" ## I.textSplice . T.pack . show $ month
+        "year" ## toTextSplice year
+        "month" ## toTextSplice month
 
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
 handleCalendarDay year month day = do
@@ -209,8 +210,8 @@ handleCalendarDay year month day = do
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/day" $ do
         "events" ## renderEvents events
-        "year" ## I.textSplice . T.pack . show $ year
-        "month" ## I.textSplice . T.pack . show $ month
+        "year" ## toTextSplice year
+        "month" ## toTextSplice month
         "day" ## toTextSplice day
 
 --------------------------------------------------------------------------------
@@ -221,5 +222,5 @@ readBSMaybe Nothing = Nothing
 readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
 
 -- We do this one way too often
-toTextSplice :: Show a => a -> SnapletISplice App--Heist.Types.HeistT n m Heist.Types.Template
+toTextSplice :: Show a => a -> SnapletISplice App
 toTextSplice = I.textSplice . T.pack . show
