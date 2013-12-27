@@ -63,19 +63,27 @@ appInit = makeSnaplet "halendar" "The Haskell Calendar" Nothing $ do
 main :: IO ()
 main = serveSnaplet defaultConfig appInit
 
+-- Used to output an error to the user where needed.
+renderError :: Show a => a -> Handler App (AuthManager App) ()
+renderError a = renderWithSplices "_error" $ do
+    "errormsg" ## toTextSplice a
+
 -- Triggers on the /signup page
 handleNewUser :: Handler App (AuthManager App) ()
 handleNewUser = method GET handleForm <|> method POST handleFormSubmit
     where
         handleForm = render "signup"
-        handleFormSubmit = registerUser "username" "password" >> redirect "/"
+        handleFormSubmit = registerUser "username" "password" >>= afterRegister
+        afterRegister :: Either AuthFailure AuthUser -> Handler App (AuthManager App) ()
+        afterRegister (Left af) = renderError af
+        afterRegister _ = redirect "/"
 
 -- Triggers on the /signin page
 handleSignin :: Handler App (AuthManager App) ()
 handleSignin = method GET handleForm <|> method POST handleFormSubmit
     where
         handleForm = render "signin"
-        handleFormSubmit = loginUser "username" "password" Nothing (\_ -> redirect "/signin") (redirect "/")
+        handleFormSubmit = loginUser "username" "password" Nothing renderError (redirect "/")
 
 -- Triggers on the /signout page
 handleSignout :: Handler App (AuthManager App) ()
