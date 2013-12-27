@@ -13,6 +13,7 @@ module Db (
 
 import           Control.Applicative
 import           Control.Monad
+import           Data.List
 import qualified Data.Text as T
 import           Data.Time (UTCTime)
 import qualified Database.SQLite.Simple as S
@@ -61,6 +62,12 @@ repeatEvent e = map timesToEvent $ getRepeater (eventStart e, eventEnd e)
             1 -> repeatDaily
             _ -> \(es, ee) -> [(es, ee)]
 
+eventTimeOrder :: Event -> Event -> Ordering
+eventTimeOrder e1 e2 = case eventStart e1 `compare` eventStart e2 of
+    EQ -> eventEnd e1 `compare` eventEnd e2
+    LT -> LT
+    GT -> GT
+
 
 --------------------------------------------------------------------------------
 -- Database creation
@@ -106,7 +113,7 @@ getEventsForRange :: UTCTime -> UTCTime -> Handler App Sqlite [Event]
 getEventsForRange start end = do
     nr <- nonRepeating
     r <- repeating
-    return $ nr ++ r
+    return $ sortBy eventTimeOrder (nr ++ r)
     where
         nonRepeating :: Handler App Sqlite [Event]
         nonRepeating = query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat = 0 AND ((start BETWEEN ? AND ?) OR (end BETWEEN ? AND ?))" (start, end, start, end)
