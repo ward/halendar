@@ -9,7 +9,7 @@
     <body>
         <header>
             <h1>
-                <img src="/favicon.png" id="logo" alt="" />
+                <a href="/"><img src="/favicon.png" id="logo" alt="" /></a>
                 Halendar
             </h1>
             <ifLoggedIn>
