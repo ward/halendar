@@ -19,35 +19,38 @@ module Time (
 
 import Data.Time
 
-repeatDaily :: UTCTime -> [UTCTime]
-repeatDaily = iterate addDay
+repeatDaily :: (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
+repeatDaily = repeatRange addDay
 
-addDay :: UTCTime -> UTCTime
-addDay t = UTCTime (addDays 1 $ utctDay t) (utctDayTime t)
+repeatMonthly :: (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
+repeatMonthly (s, e) = filter (sameDays (s, e)) $ repeatRange addMonthClip (s, e)
 
-repeatMonthly :: UTCTime -> [UTCTime]
-repeatMonthly = iterate addMonth
+repeatYearly :: (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
+repeatYearly (s, e) = filter (sameDays (s, e)) $ repeatRange addYearClip (s, e)
 
-addMonth :: UTCTime -> UTCTime
-addMonth (UTCTime day difftime) = UTCTime nextOkMonth difftime
+sameDays :: (UTCTime, UTCTime) -> (UTCTime, UTCTime) -> Bool
+sameDays (start, end) (start', end') = sameDay start start' && sameDay end end'
+sameDay :: UTCTime -> UTCTime -> Bool
+sameDay (UTCTime d1 _) (UTCTime d2 _) = sameLast3 (toGregorian d1) (toGregorian d2)
+sameLast3 :: Eq c => (a, b, c) -> (a, b, c) -> Bool
+sameLast3 (_, _, x3) (_, _, y3) = x3 == y3
+
+repeatRange :: (Integer -> UTCTime -> UTCTime) -> (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
+repeatRange f range = zipWith fTuple [0..] $ repeat range
     where
-        nextOkMonth :: Day
-        nextOkMonth = head $ dropWhile (differentday day) $ zipWith addGregorianMonthsClip [1..] (repeat day)
+        fTuple :: Integer -> (UTCTime, UTCTime) -> (UTCTime, UTCTime)
+        fTuple i (start, end) = (f i start, f i end)
 
--- Checks if the actual day number in a month is the same.
--- For example 30th january = 30th march = 30th april = ...
-differentday :: Day -> Day -> Bool
-differentday d1 d2 = differentthirdtuple (toGregorian d1) (toGregorian d2)
-differentthirdtuple :: Eq c => (a, b, c) -> (a, b, c) -> Bool
-differentthirdtuple (_, _, x3) (_, _, y3) = x3 /= y3
+addDay :: Integer -> UTCTime -> UTCTime
+addDay i (UTCTime day time) = UTCTime (addDays i day) time
 
-repeatYearly :: UTCTime -> [UTCTime]
-repeatYearly = iterate addYear
+addMonthClip :: Integer -> UTCTime -> UTCTime
+addMonthClip i (UTCTime day time) = UTCTime (addGregorianMonthsClip i day) time
 
-addYear (UTCTime day difftime) = UTCTime nextOkYear difftime
-    where
-        nextOkYear :: Day
-        nextOkYear = head $ dropWhile (differentday day) $ zipWith addGregorianYearsClip [1..] (repeat day)
+addYearClip :: Integer -> UTCTime -> UTCTime
+addYearClip i (UTCTime day time) = UTCTime (addGregorianYearsClip i day) time
+
+--------------------------------------------------------------------------------
 
 getYear  :: UTCTime -> Integer
 getYear  = (\(y,_,_) -> y) . toGregorian . utctDay
@@ -55,6 +58,8 @@ getMonth :: UTCTime -> Int
 getMonth = (\(_,m,_) -> m) . toGregorian . utctDay
 getDay   :: UTCTime -> Int
 getDay   = (\(_,_,d) -> d) . toGregorian . utctDay
+
+--------------------------------------------------------------------------------
 
 startOfMonth :: UTCTime -> UTCTime
 startOfMonth (UTCTime d _) = UTCTime (toBegin $ toGregorian d) 0
