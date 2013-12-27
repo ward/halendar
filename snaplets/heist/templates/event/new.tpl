@@ -16,8 +16,8 @@
             <select name="repeat" required="required">
                 <option value="0" selected="selected">None</option>
                 <option value="1">Daily</option>
-                <option value="3">Monthly</option>
-                <option value="2">Yearly</option>
+                <option value="2">Monthly</option>
+                <option value="3">Yearly</option>
             </select><br />
             <input type="submit" value="Submit" />
         </fieldset>
