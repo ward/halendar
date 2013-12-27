@@ -8,9 +8,7 @@ module Time (
   , repeatYearly
   , getYear
   , getMonth
-  , getDay
-  , startOfMonth
-  , endOfMonth) where
+  , getDay) where
 
 
 import Data.Time
@@ -24,6 +22,7 @@ repeatMonthly (s, e) = filter (sameDays (s, e)) $ repeatRange addMonthClip (s, e
 repeatYearly :: (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
 repeatYearly (s, e) = filter (sameDays (s, e)) $ repeatRange addYearClip (s, e)
 
+-- Check whether the day number (in a month) is the same, pairwise.
 sameDays :: (UTCTime, UTCTime) -> (UTCTime, UTCTime) -> Bool
 sameDays (start, end) (start', end') = sameDay start start' && sameDay end end'
 sameDay :: UTCTime -> UTCTime -> Bool
@@ -40,6 +39,8 @@ repeatRange f range = zipWith fTuple [0..] $ repeat range
 addDay :: Integer -> UTCTime -> UTCTime
 addDay i (UTCTime day time) = UTCTime (addDays i day) time
 
+-- The clipping indicates the same clipping as in Data.Time.Calendar
+-- eg: 31 march + 1 month = 30 april
 addMonthClip :: Integer -> UTCTime -> UTCTime
 addMonthClip i (UTCTime day time) = UTCTime (addGregorianMonthsClip i day) time
 
@@ -54,16 +55,3 @@ getMonth :: UTCTime -> Int
 getMonth = (\(_,m,_) -> m) . toGregorian . utctDay
 getDay   :: UTCTime -> Int
 getDay   = (\(_,_,d) -> d) . toGregorian . utctDay
-
---------------------------------------------------------------------------------
-
-startOfMonth :: UTCTime -> UTCTime
-startOfMonth (UTCTime d _) = UTCTime (toBegin $ toGregorian d) 0
-    where
-        toBegin :: (Integer, Int, Int) -> Day
-        toBegin (y, m, _) = fromGregorian y m 1
-endOfMonth :: UTCTime -> UTCTime
-endOfMonth (UTCTime d _) = UTCTime (toEnd $ toGregorian d) 86401
-    where
-        toEnd :: (Integer, Int, Int) -> Day
-        toEnd (y, m, _) = fromGregorian y m (gregorianMonthLength y m)
