@@ -7,4 +7,5 @@
     <p>The logo based on the Calendar icon designed by
     <a href="http://thenounproject.com/edward/">Edward Boatman</a> from the
     <a href="http://www.thenounproject.com/">Noun Project</a>.</p>
+    <p>Tested in Firefox and Chromium.</p>
 </apply>
