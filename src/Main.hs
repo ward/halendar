@@ -130,9 +130,9 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
             eventid <- getParam "eventid"
             event <- withTop db (findEvent eventid)
             case event of
-                [] -> redirect "/"
+                [] -> renderError' "Event not found."
                 [e] -> renderWithSplices "event/view" $ renderEvent e
-                _ -> redirect "/"
+                _ -> renderError' "I don't know how you got here, but please report this error."
         findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
@@ -141,12 +141,14 @@ handleEventDelete :: Handler App (AuthManager App) ()
 handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
-        handleDeleteEvent user = do
+        handleDeleteEvent user@(User uid ulogin) = do
             eventid <- getParam "eventid"
             event <- withTop db $ findEvent eventid
             case event of
-                [e] -> withTop db (deleteEvent user e) >> render "event/delete"
-                _ -> redirect "/"
+                [e] -> case eventOwner e == uid of
+                    True -> withTop db (deleteEvent user e) >> render "event/delete"
+                    False -> renderError' "You do not own this event and cannot delete it."
+                _ -> renderError' "Event not found."
         findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
