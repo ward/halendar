@@ -182,7 +182,15 @@ handleCalendarRedirect = do
     redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
 handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
-handleCalendarYear year = render "calendar/year"
+handleCalendarYear year = do
+    let start = UTCTime (fromGregorian year 1 1) 0
+    let end = UTCTime (fromGregorian year 12 31) 86401
+    events <- withTop db $ getEventsForRange start end
+    renderWithSplices "calendar/year" $ do
+        "events" ## renderEvents events
+        "year" ## I.textSplice . T.pack . show $ year
+        "prevyear" ## I.textSplice . T.pack . show $ year - 1
+        "nextyear" ## I.textSplice . T.pack . show $ year + 1
 
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
@@ -195,7 +203,15 @@ handleCalendarMonth year month = do
         "month" ## I.textSplice . T.pack . show $ month
 
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
-handleCalendarDay year month day = render "calendar/day"
+handleCalendarDay year month day = do
+    let start = UTCTime (fromGregorian year month day) 0
+    let end = UTCTime (fromGregorian year month day) 86401
+    events <- withTop db $ getEventsForRange start end
+    renderWithSplices "calendar/day" $ do
+        "events" ## renderEvents events
+        "year" ## I.textSplice . T.pack . show $ year
+        "month" ## I.textSplice . T.pack . show $ month
+        "day" ## toTextSplice day
 
 --------------------------------------------------------------------------------
 -- Helper function. getParam returns Maybe BS.ByteString and we always want to
@@ -203,3 +219,7 @@ handleCalendarDay year month day = render "calendar/day"
 readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
 readBSMaybe Nothing = Nothing
 readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
+
+-- We do this one way too often
+toTextSplice :: Show a => a -> SnapletISplice App--Heist.Types.HeistT n m Heist.Types.Template
+toTextSplice = I.textSplice . T.pack . show
