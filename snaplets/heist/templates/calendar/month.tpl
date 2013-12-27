@@ -1,9 +1,14 @@
 <apply template="base">
-    <bind tag="pagetitle"><year />-<month /></bind> <!-- TODO: Dynamically bind correct month -->
+    <bind tag="pagetitle"><year />-<month /></bind>
     <p>List of the events this month.</p>
     <ul>
     <events>
-        <li><eventid /> - <eventtitle /> (<eventstart />-<eventend />)</li>
+        <li><a href="/event/view/${eventid}"><eventtitle /></a>
+            <ul>
+                <li><eventstart /></li>
+                <li><eventend /></li>
+            </ul>
+        </li>
     </events>
     </ul>
 </apply>
