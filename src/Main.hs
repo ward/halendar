@@ -65,8 +65,10 @@ main = serveSnaplet defaultConfig appInit
 
 -- Used to output an error to the user where needed.
 renderError :: Show a => a -> Handler App (AuthManager App) ()
-renderError a = renderWithSplices "_error" $ do
-    "errormsg" ## toTextSplice a
+renderError a = renderError' . show $ a
+renderError' :: String -> Handler App (AuthManager App) ()
+renderError' s = renderWithSplices "_error" $ do
+    "errormsg" ## I.textSplice . T.pack $ s
 
 -- Triggers on the /signup page
 handleNewUser :: Handler App (AuthManager App) ()
@@ -90,8 +92,7 @@ handleSignout :: Handler App (AuthManager App) ()
 handleSignout = logout >> redirect "/"
 
 -- This function can be used for every page that requires you to be logged in.
--- If not logged in, you are redirect to the signin page
---    (Downside: your target page is forgotten)
+-- If not logged in, you are shown an error
 -- If logged in, the current user is turned into the User type defined in Db.hs
 -- then this is passed into the function `action'
 -- Based on the example in snaplet-sqlite-simple
@@ -100,10 +101,10 @@ withLoggedInUser action =
     currentUser >>= go
     where
         go :: Maybe AuthUser -> Handler App (AuthManager App) ()
-        go Nothing = redirect "/signin"
+        go Nothing = renderError' "You need to be logged in to access this page."
         go (Just u) = case userId u of
                            Just uid -> action (Db.User (read . T.unpack $ unUid uid) (userLogin u))
-                           Nothing  -> redirect "/signin"
+                           Nothing  -> renderError' "You don't have a userid, what the hell?"
 
 --------------------------------------------------------------------------------
 -- Event handling (new/view/delete)
