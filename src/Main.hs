@@ -199,8 +199,8 @@ handleCalendarYear year = do
     let end = UTCTime (fromGregorian year 12 31) 86401
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/year" $ do
-        "events" ## renderEvents events
-        "year" ## toTextSplice year
+        "events"   ## renderEvents events
+        "year"     ## toTextSplice year
         "prevyear" ## toTextSplice (year - 1)
         "nextyear" ## toTextSplice (year + 1)
 
@@ -208,16 +208,16 @@ handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
     let start = UTCTime (fromGregorian year month 1) 0
     let end = UTCTime (fromGregorian year month (gregorianMonthLength year month)) 86401
-    events <- withTop db $ getEventsForRange start end
     let (prevyear, prevmonth, _) = toGregorian . addGregorianMonthsClip (-1) $ fromGregorian year month 1
     let (nextyear, nextmonth, _) = toGregorian . addGregorianMonthsClip 1 $ fromGregorian year month 1
+    events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/month" $ do
-        "events" ## renderEvents events
-        "year" ## toTextSplice year
-        "month" ## toTextSplice month
-        "prevyear" ## toTextSplice prevyear
+        "events"    ## renderEvents events
+        "year"      ## toTextSplice year
+        "month"     ## toTextSplice month
+        "prevyear"  ## toTextSplice prevyear
         "prevmonth" ## toTextSplice prevmonth
-        "nextyear" ## toTextSplice nextyear
+        "nextyear"  ## toTextSplice nextyear
         "nextmonth" ## toTextSplice nextmonth
 
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
@@ -228,16 +228,16 @@ handleCalendarDay year month day = do
     let (nextyear, nextmonth, nextday) = toGregorian . addDays 1 $ fromGregorian year month day
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/day" $ do
-        "events" ## renderEvents events
-        "year" ## toTextSplice year
-        "month" ## toTextSplice month
-        "day" ## toTextSplice day
-        "prevyear" ## toTextSplice prevyear
+        "events"    ## renderEvents events
+        "year"      ## toTextSplice year
+        "month"     ## toTextSplice month
+        "day"       ## toTextSplice day
+        "prevyear"  ## toTextSplice prevyear
         "prevmonth" ## toTextSplice prevmonth
-        "prevday" ## toTextSplice prevday
-        "nextyear" ## toTextSplice nextyear
+        "prevday"   ## toTextSplice prevday
+        "nextyear"  ## toTextSplice nextyear
         "nextmonth" ## toTextSplice nextmonth
-        "nextday" ## toTextSplice nextday
+        "nextday"   ## toTextSplice nextday
 
 --------------------------------------------------------------------------------
 -- Helper function. getParam returns Maybe BS.ByteString and we always want to
