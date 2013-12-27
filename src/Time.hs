@@ -2,10 +2,6 @@
 -- have the particular day we are following. Eg 31 January will have 31 March
 -- next in the line.
 
--- TODO, we are using iterate, which doesn't have a strict version built in
--- Use http://stackoverflow.com/q/8909997/411495 ?
--- See also freenode/#haskell around 2013-12-23 15:30 UTC
-
 module Time (
     repeatDaily
   , repeatMonthly

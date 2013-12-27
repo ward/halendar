@@ -110,8 +110,6 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             parameters <- mapM getParam ["title", "description", "start", "end", "repeat"]
             -- sequence parameters is Maybe [BS.ByteString]
             -- decode into Maybe [T.Text]
-            -- withTop prevents type mismatch since saveEvent returns
-            -- Handler App Sqlite ()
             withTop db $ saveEvent user (sequence parameters >>= (Just . map T.decodeUtf8))
             redirect "/"
 
@@ -182,8 +180,8 @@ handleCalendarRedirect = do
     redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
 -- TODO: Next 3 are a bit too similar to my liking
--- Note that the similarity in the actual looks of the views is on purpose.
---      More time = better design
+-- Note that the similarity in the actual looks of the views is on purpose due
+-- to time constraints
 handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
 handleCalendarYear year = do
     let start = UTCTime (fromGregorian year 1 1) 0
