@@ -21,13 +21,14 @@ import           Snap.Snaplet
 import           Snap.Snaplet.SqliteSimple
 
 import           Application
+import           Time
 
 -- AuthUser is turned into this type.
 -- From this it also follows that we expect to only ever need the UID and the
 -- login name of a user in our program.
 -- If this changes: refactoring fun times!
 -- User ID login
-data User = User Int T.Text
+data User = User Int T.Text deriving (Show)
 
 data Event = Event
     { eventId :: Int
@@ -43,7 +44,23 @@ data Event = Event
 
 -- TODO: Can't this be written more concisely?
 instance FromRow Event where
-  fromRow = Event <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+    fromRow = Event <$> field <*> field <*> field <*> field <*> field <*> field <*> field
+
+-- Produces the repeated events based on how often it should repeat
+-- Invalid jumps are skipped, for example 31 january, monthly rep makes next
+-- event be in march
+repeatEvent :: Event -> [Event]
+repeatEvent e = map timesToEvent $ getRepeater (eventStart e, eventEnd e)
+    where
+        timesToEvent :: (UTCTime, UTCTime) -> Event
+        timesToEvent (start, end) = e { eventStart = start, eventEnd = end }
+        getRepeater :: (UTCTime, UTCTime) -> [(UTCTime, UTCTime)]
+        getRepeater = case (eventRepeat e) of
+            3 -> repeatYearly
+            2 -> repeatMonthly
+            1 -> repeatDaily
+            _ -> \(es, ee) -> [(es, ee)]
+
 
 --------------------------------------------------------------------------------
 -- Database creation
@@ -100,12 +117,12 @@ getEventsForRange start end = do
             -- TODO:
             -- For each event:
             -- Repeat daily/monthly/yearly -> inf list
-            -- drop while eventend is smaller than end
+            -- drop while eventend is smaller than start
             -- take while start is smaller than end
             -- create events with the relevant start and end dates
             -- 
             -- flatten everything
-            --return $ map (d) re
+            --return $ concatMap () re
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
 saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
