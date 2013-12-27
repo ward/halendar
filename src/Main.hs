@@ -148,13 +148,13 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
 -- Turn an event into splices. Needed for rendering.
 renderEvent :: Monad n => Event -> Splices (I.Splice n)
 renderEvent event = do
-    "eventid"          ## toTextSplice eventId event
+    "eventid"          ## I.textSplice . T.pack . show $ eventId event
     "eventtitle"       ## I.textSplice (eventTitle event)
     "eventdescription" ## I.textSplice (eventDescription event)
-    "eventstart"       ## toTextSplice eventStart event
-    "eventend"         ## toTextSplice eventEnd event
-    "eventrepeat"      ## toTextSplice eventRepeat event
-    "eventowner"       ## toTextSplice eventOwner event
+    "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
+    "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
+    "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
+    "eventowner"       ## I.textSplice . T.pack . show $ eventOwner event
 
 renderEvents :: [Event] -> SnapletISplice App
 renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
@@ -182,6 +182,8 @@ handleCalendarRedirect = do
     redirect . BSC.pack $ concat ["/calendar/", show (getYear now), "/", show (getMonth now)]
 
 -- TODO: Next 3 are a bit too similar to my liking
+-- Note that the similarity in the actual looks of the views is on purpose.
+--      More time = better design
 handleCalendarYear :: Integer -> Handler App (AuthManager App) ()
 handleCalendarYear year = do
     let start = UTCTime (fromGregorian year 1 1) 0
@@ -190,29 +192,43 @@ handleCalendarYear year = do
     renderWithSplices "calendar/year" $ do
         "events" ## renderEvents events
         "year" ## toTextSplice year
-        "prevyear" ## toTextSplice year - 1
-        "nextyear" ## toTextSplice year + 1
+        "prevyear" ## toTextSplice (year - 1)
+        "nextyear" ## toTextSplice (year + 1)
 
 handleCalendarMonth :: Integer -> Int -> Handler App (AuthManager App) ()
 handleCalendarMonth year month = do
     let start = UTCTime (fromGregorian year month 1) 0
     let end = UTCTime (fromGregorian year month (gregorianMonthLength year month)) 86401
     events <- withTop db $ getEventsForRange start end
+    let (prevyear, prevmonth, _) = toGregorian . addGregorianMonthsClip (-1) $ fromGregorian year month 1
+    let (nextyear, nextmonth, _) = toGregorian . addGregorianMonthsClip 1 $ fromGregorian year month 1
     renderWithSplices "calendar/month" $ do
         "events" ## renderEvents events
         "year" ## toTextSplice year
         "month" ## toTextSplice month
+        "prevyear" ## toTextSplice prevyear
+        "prevmonth" ## toTextSplice prevmonth
+        "nextyear" ## toTextSplice nextyear
+        "nextmonth" ## toTextSplice nextmonth
 
 handleCalendarDay :: Integer -> Int -> Int -> Handler App (AuthManager App) ()
 handleCalendarDay year month day = do
     let start = UTCTime (fromGregorian year month day) 0
     let end = UTCTime (fromGregorian year month day) 86401
+    let (prevyear, prevmonth, prevday) = toGregorian . addDays (-1) $ fromGregorian year month day
+    let (nextyear, nextmonth, nextday) = toGregorian . addDays 1 $ fromGregorian year month day
     events <- withTop db $ getEventsForRange start end
     renderWithSplices "calendar/day" $ do
         "events" ## renderEvents events
         "year" ## toTextSplice year
         "month" ## toTextSplice month
         "day" ## toTextSplice day
+        "prevyear" ## toTextSplice prevyear
+        "prevmonth" ## toTextSplice prevmonth
+        "prevday" ## toTextSplice prevday
+        "nextyear" ## toTextSplice nextyear
+        "nextmonth" ## toTextSplice nextmonth
+        "nextday" ## toTextSplice nextday
 
 --------------------------------------------------------------------------------
 -- Helper function. getParam returns Maybe BS.ByteString and we always want to
