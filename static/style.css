@@ -26,6 +26,12 @@ nav ul {
     width: 30em;
     vertical-align: top;
 }
+#content input, #content select, #content textarea {
+    width: 100%;
+}
+#content textarea {
+    resize: vertical;
+}
 footer {
     font-size: 0.8em;
     text-align: center;
