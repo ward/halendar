@@ -49,7 +49,7 @@ easily. For those who aren't, I hope this explanation suffices.
 ### Time.hs
 
 This file defines some functions that work on the `UTCTime` type from the
-`Data.Time` module from the `time` library. The `repeat*` ones takes a tuple of
+`Data.Time` module from the `time` library. The `repeat*` ones take a tuple of
 two `UTCTime` and start tacking on the appropriate length, skipping entries that
 don't exist in another month/year. For example 29 February 2012 in either start
 of end of something repeating yearly would have as next result 29 February 2016
@@ -64,6 +64,10 @@ using: an `Event` type and a `User` type that is a sort of simplified version of
 create the necessary database table as well as checking if it is already there.
 Finally there are functions that put an `Event` in the database as well as
 getting it back out.
+
+### Application.hs
+
+This is pretty much some Snap configuring.
 
 ## Useful Reading
 
