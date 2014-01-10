@@ -28,15 +28,26 @@ import           Snap.Snaplet.SqliteSimple
 import           Application
 import           Time
 
--- AuthUser is turned into this type.
--- From this it also follows that we expect to only ever need the UID and the
--- login name of a user in our program.
--- If this changes: refactoring fun times!
--- User ID login
+--------------------------------------------------------------------------------
+-- Types
+--
+-- User
+--   This type which will be used to simplify Auth's AuthUser type for usage in
+--   our code.
+-- Event
+--   Used to represent an event. We won't create these manually, but instead
+--   only create it when pulling one from the database. This ensures existence
+--   of a user id.
+-- This is done in this file since they are so interwoven with the database.
+--------------------------------------------------------------------------------
+
+-- Expect to only really use user ID and login name
 data User = User Int T.Text deriving (Show)
 
+-- Used in Event
 data Repeat = Never | Daily | Monthly | Yearly
     deriving (Show, Read, Enum)
+
 -- Need these to also be able to take it from/put it in the database
 -- Note the graceful failure if the value in the database is not an integer
 -- If it is an integer but doesn't fit in our Enum, then hissyfits will be thrown
@@ -53,8 +64,6 @@ data Event = Event
     , eventDescription :: T.Text
     , eventStart :: UTCTime
     , eventEnd :: UTCTime
-    -- If we make something deriving from Enum, would it easily go in the database?
-    -- Could use fromEnum/toEnum?
     , eventRepeat :: Repeat
     , eventOwner :: Int
     } deriving (Show)
@@ -65,6 +74,7 @@ instance FromRow Event where
 -- Produces the repeated events based on how often it should repeat
 -- Invalid jumps are skipped, for example 31 january, monthly rep makes next
 -- event be in march
+-- Uses the UTCTime functions from Time.hs
 repeatEvent :: Event -> [Event]
 repeatEvent e = map timesToEvent $ getRepeater (eventStart e, eventEnd e)
     where
@@ -77,6 +87,7 @@ repeatEvent e = map timesToEvent $ getRepeater (eventStart e, eventEnd e)
             Daily -> repeatDaily
             Never -> \(es, ee) -> [(es, ee)]
 
+-- Used to sort events by time when getting a range of events.
 eventTimeOrder :: Event -> Event -> Ordering
 eventTimeOrder e1 e2 = case eventStart e1 `compare` eventStart e2 of
     EQ -> eventEnd e1 `compare` eventEnd e2
@@ -86,6 +97,10 @@ eventTimeOrder e1 e2 = case eventStart e1 `compare` eventStart e2 of
 
 --------------------------------------------------------------------------------
 -- Database creation
+--
+-- createTables is run at every start up. If it doesn't find the  eventstable,
+-- it creates it. (Note that Auth handles the user table)
+--------------------------------------------------------------------------------
 
 tableExists :: S.Connection -> String -> IO Bool
 tableExists conn tblName = do
@@ -115,6 +130,11 @@ createTables conn = do
                       ])
 
 --------------------------------------------------------------------------------
+-- Communication with the database
+--
+-- Functions to get events from the database as well as saving to it.
+--------------------------------------------------------------------------------
+
 getEvent :: Maybe Int -> Handler App Sqlite [Event]
 getEvent Nothing = return []
 getEvent (Just eid) =
