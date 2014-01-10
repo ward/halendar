@@ -56,6 +56,15 @@ of end of something repeating yearly would have as next result 29 February 2016
 as there is no 29 February in 2013, 2014 and 2015. The `get*` ones are pretty
 obvious.
 
+### Db.hs
+
+This one does three major things. First of all it defines the types we'll be
+using: an `Event` type and a `User` type that is a sort of simplified version of
+`AuthUser` from the `Auth` snaplet. Besides that it also provides functions to
+create the necessary database table as well as checking if it is already there.
+Finally there are functions that put an `Event` in the database as well as
+getting it back out.
+
 ## Useful Reading
 
 * [Snap: A Haskell Web Framework](http://snapframework.com/)
