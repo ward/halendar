@@ -24,20 +24,28 @@ import           Application
 import           Db
 import           Time
 
+--------------------------------------------------------------------------------
+-- Snappy things
+--
+-- This part does all the setting up of Snap. This ranges from defining the
+-- routes mapping to initializing the Snaplets.
+-- The main function also resides here.
+--------------------------------------------------------------------------------
 
+-- Maps URLs to what we want to use to handle it.
 routes :: [(BS.ByteString, Handler App App ())]
 routes = [
-    ("/signup", with auth handleNewUser),
-    ("/signin", with auth handleSignin),
-    ("/signout", with auth handleSignout),
-    ("/event/new", with auth handleEventNew),
-    ("/event/view/:eventid", with auth handleEventView),
-    ("/event/delete/:eventid", with auth handleEventDelete),
-    ("/calendar", with auth handleCalendar),
-    ("/calendar/:year", with auth handleCalendar),
-    ("/calendar/:year/:month", with auth handleCalendar),
+    ("/signup",                     with auth handleNewUser),
+    ("/signin",                     with auth handleSignin),
+    ("/signout",                    with auth handleSignout),
+    ("/event/new",                  with auth handleEventNew),
+    ("/event/view/:eventid",        with auth handleEventView),
+    ("/event/delete/:eventid",      with auth handleEventDelete),
+    ("/calendar",                   with auth handleCalendar),
+    ("/calendar/:year",             with auth handleCalendar),
+    ("/calendar/:year/:month",      with auth handleCalendar),
     ("/calendar/:year/:month/:day", with auth handleCalendar),
-    ("", serveDirectory "static")
+    ("",                            serveDirectory "static")
     ]
 
 appInit :: SnapletInit App App
@@ -62,6 +70,13 @@ appInit = makeSnaplet "halendar" "The Haskell Calendar" Nothing $ do
 
 main :: IO ()
 main = serveSnaplet defaultConfig appInit
+
+--------------------------------------------------------------------------------
+-- Some helpers
+--
+-- Before going to the functions actually handling the requests, here are some
+-- helper functions.
+--------------------------------------------------------------------------------
 
 -- Used to output an error to the user where needed.
 renderError :: Show a => a -> Handler App (AuthManager App) ()
