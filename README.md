@@ -11,6 +11,7 @@ Vrije Universiteit Brussel.
 * Cabal
 * Snap Framework (installed through cabal)
 * SQLite 3
+* Library requirements are handled in the `*.cabal` file
 
 ## Installation
 
@@ -27,6 +28,23 @@ Finally, issue `halendar` to start running Halendar.
 Tables in the SQLite database will automatically be created when first run. If
 using this in production, be sure to disable SQL query tracing in
 `/snaplets/sqlite-simple/devel.cfg`.
+
+## Understanding the code
+
+This section is an overview of where to look for what in order to understand the
+code. If you are used to the Snap framework, this will probably come more
+easily. For those who aren't, I hope this explanation suffices.
+
+### Directories
+
+* `snaplets/heist/templates/` are all the template files. Heist is the template
+  engine. These files will be used to generate pages to serve to the user.
+  Beyond being able to include one another, it's also possible to exposible bind
+  points to the haskell code (luckily!).
+* `snaplets/sqlite-auth/` has configuration options for the Auth snaplet.
+* `snaplets/sqlite-simple/` has configuration options for the sqlite database.
+* `src/` holds the actual haskell code, more details to follow further on.
+* `static/` holds files that can be served directly. For example images, CSS, ...
 
 ## Useful Reading
 
