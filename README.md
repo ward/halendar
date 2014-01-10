@@ -9,25 +9,30 @@ Vrije Universiteit Brussel.
 
 * Haskell
 * Cabal
-* Snap Framework (installed through cabal)
 * SQLite 3
 * Library requirements are handled in the `*.cabal` file
 
 ## Installation
 
 Halendar uses Haskell (duh) and as such we rely on `cabal`. So start off by
-making sure you've got that installed. Next, use `cabal install snap` to install
-the [Snap framework](http://snapframework.com/). Note that this can take a
-while.
+making sure you've got that installed.
 
-Now, while being in the project folder, issue `cabal install`. This will create
-an executable in the following folder (on linux anyway): `$HOME/.cabal/bin/`.
-Add that to your path with `PATH=$PATH:$HOME/.cabal/bin/` for ease of use.
-Finally, issue `halendar` to start running Halendar.
+Now, while being in the project folder, issue `cabal install`. This will start
+downloading and compiling a *big* amount of packages. Feel free to do
+[something](http://xkcd.com/303/) else while you wait. It will also create an
+executable in the following folder (on linux anyway): `$HOME/.cabal/bin/`. Add
+that to your path with `PATH=$PATH:$HOME/.cabal/bin/`. Finally, issue `halendar`
+to start running Halendar.
+
+Caveat: from my (limited) experience, `cabal` is pretty horrible with properly
+managing all the dependencies of different projects. If you don't care about
+what packages you already had installed and you are having issues with running
+`cabal install`, see if removing `~/.cabal/` and `~/.ghc/` before trying it
+helps you any further.
 
 Tables in the SQLite database will automatically be created when first run. If
-using this in production, be sure to disable SQL query tracing in
-`/snaplets/sqlite-simple/devel.cfg`.
+using this in production (why are you doing this?!), be sure to disable SQL
+query tracing in `/snaplets/sqlite-simple/devel.cfg`.
 
 ## Understanding the code
 
