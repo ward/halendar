@@ -39,12 +39,22 @@ easily. For those who aren't, I hope this explanation suffices.
 
 * `snaplets/heist/templates/` are all the template files. Heist is the template
   engine. These files will be used to generate pages to serve to the user.
-  Beyond being able to include one another, it's also possible to exposible bind
+  Beyond being able to include one another, it's also possible to expose bind
   points to the haskell code (luckily!).
 * `snaplets/sqlite-auth/` has configuration options for the Auth snaplet.
 * `snaplets/sqlite-simple/` has configuration options for the sqlite database.
 * `src/` holds the actual haskell code, more details to follow further on.
 * `static/` holds files that can be served directly. For example images, CSS, ...
+
+### Time.hs
+
+This file defines some functions that work on the `UTCTime` type from the
+`Data.Time` module from the `time` library. The `repeat*` ones takes a tuple of
+two `UTCTime` and start tacking on the appropriate length, skipping entries that
+don't exist in another month/year. For example 29 February 2012 in either start
+of end of something repeating yearly would have as next result 29 February 2016
+as there is no 29 February in 2013, 2014 and 2015. The `get*` ones are pretty
+obvious.
 
 ## Useful Reading
 
