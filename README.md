@@ -69,6 +69,31 @@ getting it back out.
 
 This is pretty much some Snap configuring.
 
+### Main.hs
+
+This is where the magic happens! At least that's what I keep telling myself.
+
+On the one hand there's a bit to set up Snap completely. This includes setting
+up the routes from URLs to our handlers, setting up the snaplets that we are
+using and defining the `main` function.
+
+On the other hand there's a boatload of handler functions for the different
+pages in the site as well as their helper functions. One of those helper
+functions worthy of some special attention is `withLoggedInUser` which is a
+wrapper function of sorts that
+
+1. Checks if a user is logged in. If not, redirect to general "you need to log in" page
+2. If logged in, simplify `AuthUser` to the `Db.User` we wrote, then pass that
+   user on to the function which we are wrapping.
+
+Now this wrapped function can be assured there is somoeone logged in as well as
+knowing *who* it is.
+
+Something else to also take note of is that all the handlers of pages with a
+form are essentially two handlers in one. One of them triggers on a GET request
+and shows the form, the other triggers on a POST request and handles the
+submitted form.
+
 ## Useful Reading
 
 * [Snap: A Haskell Web Framework](http://snapframework.com/)
