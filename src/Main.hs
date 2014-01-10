@@ -78,12 +78,55 @@ main = serveSnaplet defaultConfig appInit
 -- helper functions.
 --------------------------------------------------------------------------------
 
+-- This function can be used for every page that requires you to be logged in.
+-- You essentially wrap that function with this one.
+-- If not logged in, you are shown an error
+-- If logged in, the current user is turned into the User type defined in Db.hs
+-- then this is passed into the function `action'
+-- (Based on the example in snaplet-sqlite-simple)
+withLoggedInUser :: (Db.User -> Handler App (AuthManager App) ()) -> Handler App (AuthManager App) ()
+withLoggedInUser action =
+    currentUser >>= go
+    where
+        go :: Maybe AuthUser -> Handler App (AuthManager App) ()
+        go Nothing = renderError' "You need to be logged in to access this page."
+        go (Just u) = case userId u of
+                           Just uid -> action (Db.User (read . T.unpack $ unUid uid) (userLogin u))
+                           Nothing  -> renderError' "You don't have a userid, what the hell?"
+
 -- Used to output an error to the user where needed.
 renderError :: Show a => a -> Handler App (AuthManager App) ()
 renderError a = renderError' . show $ a
 renderError' :: String -> Handler App (AuthManager App) ()
 renderError' s = renderWithSplices "_error" $ do
     "errormsg" ## I.textSplice . T.pack $ s
+
+-- Turn an event into splices. Needed for rendering.
+renderEvent :: Monad n => Event -> Splices (I.Splice n)
+renderEvent event = do
+    "eventid"          ## I.textSplice . T.pack . show $ eventId event
+    "eventtitle"       ## I.textSplice (eventTitle event)
+    "eventdescription" ## I.textSplice (eventDescription event)
+    "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
+    "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
+    "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
+    "eventowner"       ## I.textSplice . T.pack . show $ eventOwner event
+
+renderEvents :: [Event] -> SnapletISplice App
+renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
+
+-- Helper function. getParam returns Maybe BS.ByteString and we always want to
+-- convert it to something
+readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
+readBSMaybe Nothing = Nothing
+readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
+
+-- We do this one way too often
+toTextSplice :: Show a => a -> SnapletISplice App
+toTextSplice = I.textSplice . T.pack . show
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------    
 
 -- Triggers on the /signup page
 handleNewUser :: Handler App (AuthManager App) ()
@@ -105,21 +148,6 @@ handleSignin = method GET handleForm <|> method POST handleFormSubmit
 -- Triggers on the /signout page
 handleSignout :: Handler App (AuthManager App) ()
 handleSignout = logout >> redirect "/"
-
--- This function can be used for every page that requires you to be logged in.
--- If not logged in, you are shown an error
--- If logged in, the current user is turned into the User type defined in Db.hs
--- then this is passed into the function `action'
--- Based on the example in snaplet-sqlite-simple
-withLoggedInUser :: (Db.User -> Handler App (AuthManager App) ()) -> Handler App (AuthManager App) ()
-withLoggedInUser action =
-    currentUser >>= go
-    where
-        go :: Maybe AuthUser -> Handler App (AuthManager App) ()
-        go Nothing = renderError' "You need to be logged in to access this page."
-        go (Just u) = case userId u of
-                           Just uid -> action (Db.User (read . T.unpack $ unUid uid) (userLogin u))
-                           Nothing  -> renderError' "You don't have a userid, what the hell?"
 
 --------------------------------------------------------------------------------
 -- Event handling (new/view/delete)
@@ -169,19 +197,7 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
 --------------------------------------------------------------------------------
--- Turn an event into splices. Needed for rendering.
-renderEvent :: Monad n => Event -> Splices (I.Splice n)
-renderEvent event = do
-    "eventid"          ## I.textSplice . T.pack . show $ eventId event
-    "eventtitle"       ## I.textSplice (eventTitle event)
-    "eventdescription" ## I.textSplice (eventDescription event)
-    "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
-    "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
-    "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
-    "eventowner"       ## I.textSplice . T.pack . show $ eventOwner event
 
-renderEvents :: [Event] -> SnapletISplice App
-renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
 
 --------------------------------------------------------------------------------
 -- Calendar handling
@@ -255,12 +271,4 @@ handleCalendarDay year month day = do
         "nextday"   ## toTextSplice nextday
 
 --------------------------------------------------------------------------------
--- Helper function. getParam returns Maybe BS.ByteString and we always want to
--- convert it to something
-readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
-readBSMaybe Nothing = Nothing
-readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
 
--- We do this one way too often
-toTextSplice :: Show a => a -> SnapletISplice App
-toTextSplice = I.textSplice . T.pack . show
