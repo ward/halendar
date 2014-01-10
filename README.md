@@ -37,8 +37,8 @@ query tracing in `/snaplets/sqlite-simple/devel.cfg`.
 ## Understanding the code
 
 This section is an overview of where to look for what in order to understand the
-code. If you are used to the Snap framework, this will probably come more
-easily. For those who aren't, I hope this explanation suffices.
+code. Some working knowledge of Snap and Heist is required and outside the scope
+of this document.
 
 ### Directories
 
