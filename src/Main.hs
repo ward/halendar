@@ -115,20 +115,25 @@ renderEvent event = do
 renderEvents :: [Event] -> SnapletISplice App
 renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
 
--- Helper function. getParam returns Maybe BS.ByteString and we always want to
--- convert it to something
+-- getParam returns Maybe BS.ByteString and we always want to convert it
 readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
 readBSMaybe Nothing = Nothing
 readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
 
--- We do this one way too often
+-- We do this pretty often too
 toTextSplice :: Show a => a -> SnapletISplice App
 toTextSplice = I.textSplice . T.pack . show
 
 --------------------------------------------------------------------------------
+-- User pages
+--
+-- These handle signing up, in and out. Note that they make use of the Auth
+-- snaplet's functions.
 --------------------------------------------------------------------------------    
 
 -- Triggers on the /signup page
+-- Form is shown on GET requests, form is handled on POST requests.
+-- This idea is used on every page with a form.
 handleNewUser :: Handler App (AuthManager App) ()
 handleNewUser = method GET handleForm <|> method POST handleFormSubmit
     where
@@ -150,7 +155,13 @@ handleSignout :: Handler App (AuthManager App) ()
 handleSignout = logout >> redirect "/"
 
 --------------------------------------------------------------------------------
--- Event handling (new/view/delete)
+-- Event pages
+--
+-- Handlers for creating an event, viewing it and deleting it. The functions
+-- defined in Db.hs are used to communicate with the database backend.
+-- All of these require a logged in user.
+--------------------------------------------------------------------------------
+
 handleEventNew :: Handler App (AuthManager App) ()
 handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withLoggedInUser handleFormSubmit)
     where
@@ -180,6 +191,8 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
+-- Deletion only triggers on POST requests to prevent someone linking to the
+-- delete page and tricking unsuspecting users into deleting their event.
 handleEventDelete :: Handler App (AuthManager App) ()
 handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
@@ -196,11 +209,16 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         findEvent Nothing = return []
         findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
---------------------------------------------------------------------------------
-
 
 --------------------------------------------------------------------------------
--- Calendar handling
+-- Calendar pages
+--
+-- Handlers to show day/month/year range of events that the user requested.
+-- Requires user to be logged in.
+--------------------------------------------------------------------------------
+
+-- Dispatches things to appropriate functions depending on how many parameters
+-- were passed along (just year OR year and month OR year, month and day).
 handleCalendar :: Handler App (AuthManager App) ()
 handleCalendar = method GET (withLoggedInUser go)
     where
@@ -216,6 +234,7 @@ handleCalendar = method GET (withLoggedInUser go)
         dispatch (Just year) (Just month) Nothing    = handleCalendarMonth year month
         dispatch (Just year) (Just month) (Just day) = handleCalendarDay year month day
 
+-- Redirect to current month view
 handleCalendarRedirect :: Handler App (AuthManager App) ()
 handleCalendarRedirect = do
     now <- liftIO getCurrentTime
@@ -269,6 +288,3 @@ handleCalendarDay year month day = do
         "nextyear"  ## toTextSplice nextyear
         "nextmonth" ## toTextSplice nextmonth
         "nextday"   ## toTextSplice nextday
-
---------------------------------------------------------------------------------
-
