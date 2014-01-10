@@ -3,6 +3,7 @@ Version:             0.1
 Synopsis:            The Haskell Calendar
 Description:         Calendar web application using the Snap Framework
 License:             GPL-3
+License-file:        LICENSE
 Author:              Ward Muylaert
 Maintainer:          ward.muylaert@gmail.com
 Stability:           Experimental
