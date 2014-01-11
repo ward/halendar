@@ -98,12 +98,3 @@ Something else to also take note of is that all the handlers of pages with a
 form are essentially two handlers in one. One of them triggers on a GET request
 and shows the form, the other triggers on a POST request and handles the
 submitted form.
-
-## Useful Reading
-
-* [Snap: A Haskell Web Framework](http://snapframework.com/)
-* [Snap.Types](http://hackage.haskell.org/package/snap-core-0.1.2/docs/Snap-Types.html)
-* [Snap.Snaplet.SqliteSimple](http://hackage.haskell.org/package/snaplet-sqlite-simple-0.4.5/docs/Snap-Snaplet-SqliteSimple.html)
-* [snaplet-sqlite-simple example](https://github.com/nurpax/snaplet-sqlite-simple/tree/master/example)
-* [sqlite-simple](https://github.com/nurpax/sqlite-simple)
-* [Snap.Snaplet.Auth](http://hackage.haskell.org/package/snap-0.6.0.2/docs/Snap-Snaplet-Auth.html)
