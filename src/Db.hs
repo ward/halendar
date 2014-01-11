@@ -151,11 +151,11 @@ getEventsForRange start end = do
     return $ sortBy eventTimeOrder (nr ++ r)
     where
         nonRepeating :: Handler App Sqlite [Event]
-        nonRepeating = query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat = 0 AND ((start BETWEEN ? AND ?) OR (end BETWEEN ? AND ?))" (start, end, start, end)
+        nonRepeating = query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat = 0 AND start < ? AND end > ?" (end, start)
         repeating :: Handler App Sqlite [Event]
         repeating = do
             re <- query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat != 0 AND start < ?" (Only end)
-            return $ concatMap (takeWhile ((< end) . eventEnd) . dropWhile ((< start) . eventStart) . repeatEvent) re
+            return $ concatMap (takeWhile ((< end) . eventStart) . dropWhile ((< start) . eventEnd) . repeatEvent) re
 
 saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
 saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
