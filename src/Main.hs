@@ -96,10 +96,9 @@ withLoggedInUser action =
 
 -- Used to output an error to the user where needed.
 renderError :: Show a => a -> Handler App (AuthManager App) ()
-renderError a = renderError' . show $ a
+renderError = renderError' . show
 renderError' :: String -> Handler App (AuthManager App) ()
-renderError' s = renderWithSplices "_error" $ do
-    "errormsg" ## I.textSplice . T.pack $ s
+renderError' s = renderWithSplices "_error" $ "errormsg" ## I.textSplice . T.pack $ s
 
 -- Turn an event into splices. Needed for rendering.
 renderEvent :: Monad n => Event -> Splices (I.Splice n)
@@ -206,9 +205,9 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         handleDeleteEvent user@(User uid _) = do
             event <- withTop db $ getParam "eventid" >>= getEvent . readBSMaybe
             case event of
-                [e] -> case eventOwner e == uid of
-                    True -> withTop db (deleteEvent user e) >> render "event/delete"
-                    False -> renderError' "You do not own this event and cannot delete it."
+                [e] -> if eventOwner e == uid then
+                         withTop db (deleteEvent user e) >> render "event/delete" else
+                         renderError' "You do not own this event and cannot delete it."
                 _ -> renderError' "Event not found."
 
 
