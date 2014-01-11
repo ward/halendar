@@ -117,8 +117,7 @@ renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
 
 -- getParam returns Maybe BS.ByteString and we always want to convert it
 readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
-readBSMaybe Nothing = Nothing
-readBSMaybe (Just bs) = readMaybe (T.unpack (T.decodeUtf8 bs))
+readBSMaybe mbs = mbs >>= readMaybe . T.unpack . T.decodeUtf8
 
 -- We do this pretty often too
 toTextSplice :: Show a => a -> SnapletISplice App
