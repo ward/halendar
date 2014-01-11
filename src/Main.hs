@@ -105,8 +105,8 @@ renderError' s = renderWithSplices "_error" $ do
 renderEvent :: Monad n => Event -> Splices (I.Splice n)
 renderEvent event = do
     "eventid"          ## I.textSplice . T.pack . show $ eventId event
-    "eventtitle"       ## I.textSplice (eventTitle event)
-    "eventdescription" ## I.textSplice (eventDescription event)
+    "eventtitle"       ## I.textSplice $ eventTitle event
+    "eventdescription" ## I.textSplice $ eventDescription event
     "eventstart"       ## I.textSplice . T.pack . show $ eventStart event
     "eventend"         ## I.textSplice . T.pack . show $ eventEnd event
     "eventrepeat"      ## I.textSplice . T.pack . show $ eventRepeat event
@@ -181,14 +181,11 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
         handleShowEvent :: Db.User -> Handler App (AuthManager App) ()
         handleShowEvent _ = do
             eventid <- getParam "eventid"
-            event <- withTop db (findEvent eventid)
+            event <- withTop db $ getEvent . readBSMaybe $ eventid
             case event of
                 [] -> renderError' "Event not found."
                 [e] -> renderWithSplices "event/view" $ renderEvent e
                 _ -> renderError' "I don't know how you got here, but please report this error."
-        findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
-        findEvent Nothing = return []
-        findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
 -- Deletion only triggers on POST requests to prevent someone linking to the
 -- delete page and tricking unsuspecting users into deleting their event.
@@ -198,15 +195,12 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
         handleDeleteEvent user@(User uid _) = do
             eventid <- getParam "eventid"
-            event <- withTop db $ findEvent eventid
+            event <- withTop db $ getEvent . readBSMaybe eventid
             case event of
                 [e] -> case eventOwner e == uid of
                     True -> withTop db (deleteEvent user e) >> render "event/delete"
                     False -> renderError' "You do not own this event and cannot delete it."
                 _ -> renderError' "Event not found."
-        findEvent :: Maybe BS.ByteString -> Handler App Sqlite [Event]
-        findEvent Nothing = return []
-        findEvent (Just eid) = getEvent (readMaybe (T.unpack (T.decodeUtf8 eid)))
 
 
 --------------------------------------------------------------------------------
