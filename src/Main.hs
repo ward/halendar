@@ -176,7 +176,7 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             withTop db $ saveEvent user $ sequence parameters >>= parseParameters
             redirect "/"
         parseParameters :: [BS.ByteString]
-                             -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
+                           -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
         parseParameters [title, description, start, end, repeats] = do
             let title' = T.decodeUtf8 title
             let description' = T.decodeUtf8 description
@@ -191,8 +191,7 @@ handleEventView = method GET (withLoggedInUser handleShowEvent)
     where
         handleShowEvent :: Db.User -> Handler App (AuthManager App) ()
         handleShowEvent _ = do
-            eventid <- getParam "eventid"
-            event <- withTop db $ getEvent . readBSMaybe $ eventid
+            event <- withTop db $ getParam "eventid" >>= getEvent . readBSMaybe
             case event of
                 [] -> renderError' "Event not found."
                 [e] -> renderWithSplices "event/view" $ renderEvent e
@@ -205,8 +204,7 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
     where
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
         handleDeleteEvent user@(User uid _) = do
-            eventid <- getParam "eventid"
-            event <- withTop db $ getEvent . readBSMaybe $ eventid
+            event <- withTop db $ getParam "eventid" >>= getEvent . readBSMaybe
             case event of
                 [e] -> case eventOwner e == uid of
                     True -> withTop db (deleteEvent user e) >> render "event/delete"
