@@ -144,6 +144,8 @@ getEventsForUser :: User -> Handler App Sqlite [Event]
 getEventsForUser (User user_id _) =
     query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND user_id = ?" (Only user_id)
 
+-- Event is in range if its end is after the start of the range AND its start
+-- is before the end of the range. This gets all those partially in the range.
 getEventsForRange :: UTCTime -> UTCTime -> Handler App Sqlite [Event]
 getEventsForRange start end = do
     nr <- nonRepeating
