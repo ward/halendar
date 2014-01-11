@@ -21,7 +21,6 @@ import           Database.SQLite.Simple.FromField
 import           Database.SQLite.Simple.ToField
 import           Database.SQLite.Simple.Internal
 import           Database.SQLite.Simple.Ok
-import           Text.Read
 import           Snap.Snaplet
 import           Snap.Snaplet.SqliteSimple
 
@@ -159,30 +158,20 @@ getEventsForRange start end = do
             re <- query "SELECT id, title, description, start, end, repeat, user_id FROM events WHERE deleted = 0 AND repeat != 0 AND start < ?" (Only end)
             return $ concatMap (takeWhile ((< end) . eventStart) . dropWhile ((< start) . eventEnd) . repeatEvent) re
 
-saveEvent :: User -> Maybe [T.Text] -> Handler App Sqlite ()
-saveEvent (User uid _) parameters = saveEvent' (parseEventParameters parameters)
-    where
-        saveEvent' Nothing = return ()
-        saveEvent' (Just (title, description, start, end, repeats)) =
-            execute "INSERT INTO events (title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?)"
-                      ( title
-                      , description
-                      , start
-                      , end
-                      , repeats
-                      , uid
-                      )
+saveEvent :: User -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int) -> Handler App Sqlite ()
+saveEvent (User uid _) (Just (title, description, start, end, repeats)) = 
+    execute "INSERT INTO events (title, description, start, end, repeat, user_id) VALUES (?,?,?,?,?,?)"
+              ( title
+              , description
+              , start
+              , end
+              , repeats
+              , uid
+              )
+saveEvent _ _ = return ()
 
-parseEventParameters :: Maybe [T.Text]
-                     -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
-parseEventParameters Nothing = Nothing
-parseEventParameters (Just [title, description, start, end, repeats]) = do
-    start'   <- readMaybe (T.unpack start)   :: Maybe UTCTime
-    end'     <- readMaybe (T.unpack end)     :: Maybe UTCTime
-    repeats' <- readMaybe (T.unpack repeats) :: Maybe Int
-    return (title, description, start', end', repeats')
-parseEventParameters _ = Nothing
-
+-- Only deletes if user owns event as well
+-- TODO: check is already done when it is used. Maybe doesn't belong here.
 deleteEvent :: User -> Event -> Handler App Sqlite ()
 deleteEvent (User uid _) event =
     execute "UPDATE events SET deleted = 1 WHERE id = ? AND user_id = ?" (eventId event,uid)

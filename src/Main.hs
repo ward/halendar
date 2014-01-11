@@ -117,7 +117,9 @@ renderEvents = I.mapSplices $ I.runChildrenWith . renderEvent
 
 -- getParam returns Maybe BS.ByteString and we always want to convert it
 readBSMaybe :: Read a => Maybe BS.ByteString -> Maybe a
-readBSMaybe mbs = mbs >>= readMaybe . T.unpack . T.decodeUtf8
+readBSMaybe mbs = mbs >>= readBSMaybe'
+readBSMaybe' :: Read a => BS.ByteString -> Maybe a
+readBSMaybe' = readMaybe . T.unpack . T.decodeUtf8
 
 -- We do this pretty often too
 toTextSplice :: Show a => a -> SnapletISplice App
@@ -171,9 +173,18 @@ handleEventNew = method GET (withLoggedInUser handleForm) <|> method POST (withL
             -- parameters is now [Maybe BS.ByteString]
             parameters <- mapM getParam ["title", "description", "start", "end", "repeat"]
             -- sequence parameters is Maybe [BS.ByteString]
-            -- decode into Maybe [T.Text]
-            withTop db $ saveEvent user (sequence parameters >>= (Just . map T.decodeUtf8))
+            withTop db $ saveEvent user $ sequence parameters >>= parseParameters
             redirect "/"
+        parseParameters :: [BS.ByteString]
+                             -> Maybe (T.Text, T.Text, UTCTime, UTCTime, Int)
+        parseParameters [title, description, start, end, repeats] = do
+            let title' = T.decodeUtf8 title
+            let description' = T.decodeUtf8 description
+            start'   <- readBSMaybe' start
+            end'     <- readBSMaybe' end
+            repeats' <- readBSMaybe' repeats
+            return (title', description', start', end', repeats')
+        parseParameters _ = Nothing
 
 handleEventView :: Handler App (AuthManager App) ()
 handleEventView = method GET (withLoggedInUser handleShowEvent)
@@ -195,7 +206,7 @@ handleEventDelete = method POST (withLoggedInUser handleDeleteEvent)
         handleDeleteEvent :: Db.User -> Handler App (AuthManager App) ()
         handleDeleteEvent user@(User uid _) = do
             eventid <- getParam "eventid"
-            event <- withTop db $ getEvent . readBSMaybe eventid
+            event <- withTop db $ getEvent . readBSMaybe $ eventid
             case event of
                 [e] -> case eventOwner e == uid of
                     True -> withTop db (deleteEvent user e) >> render "event/delete"
